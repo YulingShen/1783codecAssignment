@@ -7,7 +7,7 @@ import numpy as np
 
 def res_no_ME_encode(filepath, w, h, i, n, num_frames=None):
     y_only_bytes = reader.read_raw_byte_array(filepath)
-    frame_block_array = blocking.block(y_only_bytes, w, h, i)
+    frame_block_array = blocking.block(y_only_bytes, w, h, i, num_frames)
     if num_frames is None or len(frame_block_array) < num_frames:
         num_frames = len(frame_block_array)
     frame_block_array = frame_block_array[:num_frames]
@@ -24,9 +24,9 @@ def res_no_ME_encode(filepath, w, h, i, n, num_frames=None):
     reader.write_frame_array_to_file(recon_array, filepath[0:-4] + '_pred.yuv')
 
 
-def res_ME_encode(filepath, w, h, i, r, n, num_frames=None):
+def res_ME_encode(filepath, w, h, i, n, r, num_frames=None):
     y_only_bytes = reader.read_raw_byte_array(filepath)
-    frame_block_array = blocking.block(y_only_bytes, w, h, i)
+    frame_block_array = blocking.block(y_only_bytes, w, h, i, num_frames)
     if num_frames is None or len(frame_block_array) < num_frames:
         num_frames = len(frame_block_array)
     frame_block_array = frame_block_array[:num_frames]

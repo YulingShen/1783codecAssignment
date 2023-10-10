@@ -15,11 +15,12 @@ def raw_to_frame(y_only_arr, w, h):
     return frames
 
 
-def block(y_only_arr, w, h, i):
+def block(y_only_arr, w, h, i, num_frames=None):
     w_count = (w - 1) // i + 1
     h_count = (h - 1) // i + 1
     num_pixel = w * h
-    num_frames = int(len(y_only_arr) / num_pixel)
+    if num_frames is None or int(len(y_only_arr) / num_pixel) < num_frames:
+        num_frames = int(len(y_only_arr) / num_pixel)
     frames = []
     for x in range(num_frames):
         print(x)
