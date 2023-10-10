@@ -1,9 +1,11 @@
 import numpy as np
-import math
 from codec import blocking
 
 
 def closest_multi_power2(x, n):
+    # special case, cannot round 127 to 128, will cause y value exceed 8 bit range and become 0
+    if x == 127:
+        return x
     base = 2 ** n
     return (x + int(base / 2)) & (-base)
 

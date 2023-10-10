@@ -3,6 +3,7 @@ import math
 from utils import reader
 from codec import blocking
 from codec.decoder import residual_decode
+from codec.encoder import residual_encode
 
 
 def closest_power2(x):
@@ -27,5 +28,7 @@ if __name__ == '__main__':
     # frames = reader.y_only_byte_frame_array(bytes, 352, 288)
     # print(frames)
     #
-    reader.res_abs('./files/foreman_cif_y_res.yuv')
-    reader.res_abs('./files/foreman_cif_y_res_ME.yuv')
+    # reader.res_abs('./files/foreman_cif_y_res.yuv')
+    # reader.res_abs('./files/foreman_cif_y_res_ME.yuv')
+
+    residual_decode.closest_multi_power2
