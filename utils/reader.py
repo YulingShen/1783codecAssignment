@@ -56,12 +56,12 @@ def write_frame_array_to_file(frame_array, filepath):
     f.close()
 
 
-def save_vector_ME(vector_array, filepath):
-    f = open(filepath, 'wb')
-    # for frame in vector_array:
-    #     for vec in frame:
-    #         f.write(bytes(vec[0]))
-    #         f.write(bytes(vec[1]))
+def res_abs(filepath):
+    residual = np.fromfile(filepath, dtype=np.uint8)
+    residual = residual.astype(np.int8)
+    residual = np.abs(residual)
+    f = open(filepath[:-4] + '_abs.yuv', 'wb')
+    f.write(bytes(residual))
     f.close()
 
 

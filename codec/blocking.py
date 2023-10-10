@@ -1,6 +1,20 @@
 import numpy as np
 
 
+def raw_to_frame(y_only_arr, w, h):
+    num_pixel = w * h
+    num_frames = int(len(y_only_arr) / num_pixel)
+    frames = []
+    for x in range(num_frames):
+        print(x)
+        frame = np.zeros((h, w), dtype=np.uint8)
+        frame_bytes = y_only_arr[x * num_pixel: x * num_pixel + num_pixel]
+        for n in range(num_pixel):
+            frame[n // w][n % w] = frame_bytes[n]
+        frames.append(frame)
+    return frames
+
+
 def block(y_only_arr, w, h, i):
     w_count = (w - 1) // i + 1
     h_count = (h - 1) // i + 1
@@ -31,7 +45,7 @@ def block_frame(frame, i):
     return result
 
 
-def deblock(frame_block_arr, w = None, h = None):
+def deblock(frame_block_arr, w=None, h=None):
     block_size = len(frame_block_arr[0][0][0])
     h_count = len(frame_block_arr[0])
     w_count = len(frame_block_arr[0][0])
@@ -52,7 +66,7 @@ def deblock(frame_block_arr, w = None, h = None):
     return frames
 
 
-def deblock_frame(frame_block, w = None, h = None):
+def deblock_frame(frame_block, w=None, h=None):
     block_size = len(frame_block[0][0])
     h_count = len(frame_block)
     w_count = len(frame_block[0])
@@ -61,22 +75,8 @@ def deblock_frame(frame_block, w = None, h = None):
     if h is None:
         h = h_count * block_size
     result = np.zeros((h, w), dtype=np.uint8)
-    # for i in range(h_count):
-    #     for j in range(w_count):
-    #         for x in range(block_size):
-    #             for y in range(block_size):
-    #                 result[i * block_size + x][j * block_size + y] = frame_block[i][j][x][y]
     for i in range(h):
         for j in range(w):
             result[i][j] = frame_block[i // block_size][j // block_size][i % block_size][j % block_size]
 
     return result
-
-
-if __name__ == '__main__':
-    import reader
-
-    arr = reader.read_raw_byte_array('/Users/yulingshen/fall2023/1783/mother_daughter_y.yuv')
-    frame_blocks = block(arr, 352, 288, 2)
-    frames = deblock(frame_blocks)
-    reader.write_frame_array_to_file(frames, '/Users/yulingshen/fall2023/1783/mother_daughter_recon.yuv')

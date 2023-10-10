@@ -58,7 +58,7 @@ def generate_residual_ME(prediction, frame_block, w, h, n, r):
                     if y + i_w < 0 or y + i_w + block_size > w:
                         continue
                     pred = prediction[x + i_h: x + i_h + block_size, y + i_w: y + i_w + block_size]
-                    diff = np.subtract(frame_block[i][j], pred)
+                    diff = np.subtract(frame_block[i][j], pred).astype(np.int8)
                     MAE = np.sum(np.abs(diff))
                     min_MAE, min_x, min_y, changed = find_predict_block(min_MAE, min_x, min_y, MAE, x, y)
                     if changed:
