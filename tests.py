@@ -1,9 +1,8 @@
 import numpy as np
 import math
-from utils import reader
-from codec import blocking
-from codec.decoder import residual_decode
-from codec.encoder import residual_encode
+from codec import quantization
+from codec.encoder import transform_encode, quantization_encode
+from codec.decoder import transform_decode, quantization_decode
 
 
 def closest_power2(x):
@@ -23,12 +22,7 @@ def closest_mult(x, n):
 
 
 if __name__ == '__main__':
-    # bytes = reader.read_raw_byte_array('./files/foreman_cif_res.yuv')
-    # also_bytes = reader.read_raw_byte_array('./files/foreman_cif_recon.yuv')
-    # frames = reader.y_only_byte_frame_array(bytes, 352, 288)
-    # print(frames)
-    #
-    # reader.res_abs('./files/foreman_cif_y_res.yuv')
-    # reader.res_abs('./files/foreman_cif_y_res_ME.yuv')
-
-    residual_decode.closest_multi_power2
+    mat = np.array([1,2,3,4,5,6,7,8])
+    ee = np.tile(mat, (8, 1))
+    aa = ee[:, 0]
+    print(np.tile(ee[:, 0], (8, 1)))
