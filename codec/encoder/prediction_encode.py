@@ -1,5 +1,7 @@
 import numpy as np
 from codec import blocking
+from codec.encoder import transform_encode, quantization_encode
+from codec.decoder import transform_decode, quantization_decode
 
 
 def closest_multi_power2(x, n):
@@ -13,11 +15,11 @@ def round_down_multi_power2(x, n):
 
 def generate_residual(prediction, frame_block, w, h, n):
     frame = blocking.deblock_frame(frame_block, w, h)
-    residual = np.subtract(frame.astype(np.int16), prediction.astype(np.int16)).astype(np.int8)
+    residual = np.subtract(frame.astype(np.int16), prediction.astype(np.int16))
     for i in range(h):
         for j in range(w):
-            residual[i][j] = round_down_multi_power2(residual[i][j], n)
-    return residual.astype(np.uint8)
+            residual[i][j] = closest_multi_power2(residual[i][j], n)
+    return residual
 
 
 def compare_MAE(min_MAE, min_x, min_y, MAE, x, y):
@@ -67,17 +69,15 @@ def generate_residual_ME(prediction, frame_block, w, h, n, r):
                     if changed:
                         block = diff
             MAE_sum += min_MAE
-            block = block.astype(np.int8)
             for x in range(block_size):
                 for y in range(block_size):
-                    block[x][y] = round_down_multi_power2(block[x][y], n)
+                    block[x][y] = closest_multi_power2(block[x][y], n)
             block_residual[i][j] = block
             vector_array.append([min_x, min_y])
-    block_residual = block_residual.astype(np.uint8)
     return block_residual, vector_array, MAE_sum / (h * w)
 
 
-def intra_residual(frame_block, n):
+def intra_residual(frame_block, n, q):
     block_size = len(frame_block[0][0])
     n_h = len(frame_block)
     n_w = len(frame_block[0])
@@ -86,6 +86,7 @@ def intra_residual(frame_block, n):
     block_residual = np.zeros((n_h, n_w, block_size, block_size), dtype=np.int16)
     pred = np.zeros((n_h, n_w, block_size, block_size), dtype=np.uint8)
     blank = np.full((block_size, block_size), 128, dtype=np.int16)
+    quan_frame = np.zeros((n_h, n_w, block_size, block_size), dtype=np.int16)
     for i in range(n_h):
         for j in range(n_w):
             curr_block = frame_block[i][j]
@@ -111,11 +112,14 @@ def intra_residual(frame_block, n):
                 mode_array.append(0)
                 diff = diff_hor
                 prediction_block = prediction_block_hor
-            diff = diff.astype(np.int8)
             for x in range(block_size):
                 for y in range(block_size):
-                    diff[x][y] = round_down_multi_power2(diff[x][y], n)
+                    diff[x][y] = closest_multi_power2(diff[x][y], n)
             block_residual[i][j] = diff
-            pred[i][j] = np.add(prediction_block, diff)
-    block_residual = block_residual.astype(np.uint8)
-    return block_residual, pred
+            tran = transform_encode.transform_block(diff)
+            quan = quantization_encode.quantization_block(tran, q)
+            quan_frame[i][j] = quan
+            dequan = quantization_decode.dequantization_block(quan, q)
+            itran = transform_decode.inverse_transform_block(dequan)
+            pred[i][j] = np.add(prediction_block, itran).clip(0, 255).astype(np.uint8)
+    return block_residual, pred, mode_array, quan_frame

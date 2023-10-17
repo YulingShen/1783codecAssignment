@@ -51,15 +51,24 @@ def write_byte_array_to_file(byte_array, filepath):
 def write_frame_array_to_file(frame_array, filepath):
     f = open(filepath, 'wb')
     for frame in frame_array:
-        for i in range(len(frame)):
-            f.write(bytes(frame[i]))
+    #     for i in range(len(frame)):
+    #         f.write(bytes(frame[i]))
+        f.write(bytes(frame))
     f.close()
 
 
+def write_frame_block_array_to_file(frame_block_array, filepath):
+    f = open(filepath, 'wb')
+    for frame_block in frame_block_array:
+        for i in range(len(frame_block)):
+            for j in range(len(frame_block[0])):
+                for k in range(len(frame_block[0][0])):
+                    f.write(bytes(frame_block[i][j][k]))
+    f.close()
+
 def res_abs(filepath):
-    residual = np.fromfile(filepath, dtype=np.uint8)
-    residual = residual.astype(np.int8)
-    residual = np.abs(residual)
+    residual = np.fromfile(filepath, dtype=np.int16)
+    residual = np.abs(residual).astype(np.uint8)
     f = open(filepath[:-4] + '_abs.yuv', 'wb')
     f.write(bytes(residual))
     f.close()

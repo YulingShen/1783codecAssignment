@@ -9,7 +9,12 @@ if __name__ == '__main__':
     n = 2
     r = 4
     qp = 2
-    frames = None
+    period = 4
+    frames = 12
     # E4process.encode_tran_quan(filepath, w, h, i, n, r, qp, frames)
     # reader.res_abs('./files/foreman_cif_y_res.yuv')
-    E4process.encode_intra(filepath, w, h, i, n, frames)
+    # E4process.encode_intra(filepath, w, h, i, n, qp, frames)
+    # E4process.encode_intra_period(filepath, w, h, i, n, r, qp, period, frames)
+    # E4process.decode_intra_period(filepath, w, h, i, qp, period)
+    # E4process.encode_intra_period_entropy(filepath, w, h, i, n, r, qp, period, frames)
+    E4process.decode_intra_period_entropy(filepath, w, h, i, n, r, qp, period)

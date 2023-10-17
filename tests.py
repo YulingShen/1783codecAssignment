@@ -1,8 +1,8 @@
 import numpy as np
 import math
 from codec import quantization
-from codec.encoder import transform_encode, quantization_encode
-from codec.decoder import transform_decode, quantization_decode
+from codec.encoder import transform_encode, quantization_encode, entropy_encode
+from codec.decoder import transform_decode, quantization_decode, entropy_decode
 
 
 def closest_power2(x):
@@ -22,7 +22,5 @@ def closest_mult(x, n):
 
 
 if __name__ == '__main__':
-    mat = np.array([1,2,3,4,5,6,7,8])
-    ee = np.tile(mat, (8, 1))
-    aa = ee[:, 0]
-    print(np.tile(ee[:, 0], (8, 1)))
+    mat = np.array([[[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]]]])
+    print(entropy_encode.entropy_encode_quan_frame_block(mat))
