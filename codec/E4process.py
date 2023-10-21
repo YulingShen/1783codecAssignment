@@ -167,7 +167,7 @@ def encode_intra_period_entropy(filepath, w, h, i, n, r, qp, period, num_frames=
 
 
 # file process controller of E4 decoding
-def decode_intra_period_entropy(filepath, w, h, i, n, r, qp, period):
+def decode_intra_period_entropy(filepath, w, h, i, qp, period):
     if filepath[-4:] == '.yuv':
         filepath = filepath[:-4]
     with open(filepath + '_res', 'r') as res_file:
