@@ -29,6 +29,19 @@ def decode_vec_one_frame(code_str, size, mv=True):
     return val_array, code_str
 
 
+def decode_setting(code_str):
+    values = []
+    for i in range(5):
+        zero_count = 0
+        while code_str[zero_count] == "0":
+            zero_count += 1
+        bit_str = code_str[: zero_count * 2 + 1]
+        code_str = code_str[zero_count * 2 + 1:]
+        val = golomb_decode(bit_str)
+        values.append(val)
+    return values[0], values[1], values[2], values[3], values[4]
+
+
 def get_size(code_str, size):
     remain_count = size
     val_array = []

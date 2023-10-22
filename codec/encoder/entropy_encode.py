@@ -45,6 +45,27 @@ def entropy_encode_vec(vector_array):
     return result, bit_sum
 
 
+def entropy_encode_setting(w, h, i, qp, period):
+    result = ""
+    bit_sum = 0
+    code, bits = exp_golomb(w)
+    result += code
+    bit_sum += bits
+    code, bits = exp_golomb(h)
+    result += code
+    bit_sum += bits
+    code, bits = exp_golomb(i)
+    result += code
+    bit_sum += bits
+    code, bits = exp_golomb(qp)
+    result += code
+    bit_sum += bits
+    code, bits = exp_golomb(period)
+    result += code
+    bit_sum += bits
+    return result, bit_sum
+
+
 def RLE(num_array):
     count = 0
     count_index = 0

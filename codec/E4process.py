@@ -120,12 +120,16 @@ def decode_intra_period(filepath, w, h, i, qp, period):
 
 
 # final process controller for E4 encoding
-def encode_intra_period_entropy(filepath, w, h, i, n, r, qp, period, num_frames=None):
+def encode_complete(filepath, w, h, i, n, r, qp, period, num_frames=None):
     y_only_bytes = reader.read_raw_byte_array(filepath)
     frame_block_array = blocking.block_raw(y_only_bytes, w, h, i, num_frames)
     # files to write
     residual_file = open(filepath[:-4] + '_res', 'w')
     diff_file = open(filepath[:-4] + '_diff', 'w')
+    # config is written to the first line of diff file
+    line, bits = entropy_encode.entropy_encode_setting(w, h, i, qp, period)
+    diff_file.write(line)
+    diff_file.write("\n")
     bit_sum = 0
     if num_frames is None or len(frame_block_array) < num_frames:
         num_frames = len(frame_block_array)
@@ -167,13 +171,15 @@ def encode_intra_period_entropy(filepath, w, h, i, n, r, qp, period, num_frames=
 
 
 # file process controller of E4 decoding
-def decode_intra_period_entropy(filepath, w, h, i, qp, period):
+def decode_complete(filepath):
     if filepath[-4:] == '.yuv':
         filepath = filepath[:-4]
     with open(filepath + '_res', 'r') as res_file:
         res_code = res_file.read()
     with open(filepath + '_diff', 'r') as vec_file:
+        setting = vec_file.readline()
         vec_code = vec_file.read()
+    w, h, i, qp, period = entropy_decode.decode_setting(setting)
     q = quantization.generate_q(i, qp)
     video = []
     n_block_w = (w - 1) // i + 1
