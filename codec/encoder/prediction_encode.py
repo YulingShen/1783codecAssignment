@@ -21,6 +21,12 @@ def generate_residual(prediction, frame_block, w, h, n):
             residual[i][j] = closest_multi_power2(residual[i][j], n)
     return residual
 
+def calculate_psnr(img1, img2, max_value=255):
+    """"Calculating peak signal-to-noise ratio (PSNR) between two images."""
+    mse = np.mean((np.array(img1, dtype=np.int16) - np.array(img2, dtype=np.int16)) ** 2)
+    if mse == 0:
+        return 100
+    return 20 * np.log10(max_value / (np.sqrt(mse)))
 
 def compare_MAE(min_MAE, min_x, min_y, MAE, x, y):
     if min_MAE < MAE:

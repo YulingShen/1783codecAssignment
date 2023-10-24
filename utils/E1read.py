@@ -37,7 +37,7 @@ def raw_yuv420_to_frame_array(byte_array, w, h):
     num_frames = int(len(byte_array) / num_bytes_per_frame)
     frame_array = []
     for x in range(num_frames):
-        print(x)
+        # print(x)
         frame_bytes = byte_array[x * num_bytes_per_frame: x * num_bytes_per_frame + num_bytes_per_frame]
         frame = np.zeros((h, w, 3))
         rgb = np.zeros((h, w, 3))
