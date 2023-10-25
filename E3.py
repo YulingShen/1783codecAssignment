@@ -9,7 +9,7 @@ if __name__ == '__main__':
     n = 2
     r = 4
     frames = 30
-    # E3process.res_ME_encode(filepath, w, h, i, n, r, frames)
+    E3process.res_ME_encode(filepath, w, h, i, n, r, frames)
     E3process.res_ME_decode(filepath, w, h, i)
     # E3process.res_no_ME_encode(filepath, w, h, i, n, frames)
     # E3process.res_no_ME_decode(filepath, w, h)
