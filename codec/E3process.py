@@ -82,3 +82,24 @@ def res_ME_decode(filepath, w, h, i):
         prediction = prediction_decode.decode_residual_ME(prediction, res, vec, w, h, i)
         video.append(prediction)
     reader.write_frame_array_to_file(video, filepath + '_ME_recon.yuv')
+
+
+def ME_prediction(filepath, w, h, i):
+    if filepath[-4:] == '.yuv':
+        filepath = filepath[:-4]
+    vecs = np.load(filepath + '_vec.npy')
+    raw_res = reader.read_raw_byte_array(filepath + '_res_ME.yuv')
+    frames_res = blocking.raw_to_frame(raw_res, w, h, np.int16)
+    prediction = np.full((h, w), 128, dtype=np.uint8)
+    video = []
+    if len(vecs) != len(frames_res):
+        print('different number of frames in the files, please check the configurations')
+        return
+    for x in range(len(vecs)):
+        print('decode frame: ' + str(x))
+        res = frames_res[x]
+        vec = vecs[x]
+        ME_prediction = prediction_decode.generate_prediction(prediction, vec, w, h, i)
+        prediction = prediction_decode.decode_residual_ME(prediction, res, vec, w, h, i)
+        video.append(ME_prediction)
+    reader.write_frame_array_to_file(video, filepath + '_ME_prediction.yuv')

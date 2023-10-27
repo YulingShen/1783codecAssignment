@@ -8,7 +8,7 @@ if __name__ == '__main__':
     i = 16
     n = 3
     r = 2
-    qp = 3
+    qp = 7
     period = 4
     frames = 10
     # E4process.encode_tran_quan(filepath, w, h, i, n, r, qp, frames)
@@ -17,4 +17,4 @@ if __name__ == '__main__':
     # E4process.encode_intra_period(filepath, w, h, i, n, r, qp, period, frames)
     # E4process.decode_intra_period(filepath, w, h, i, qp, period)
     E4process.encode_complete(filepath, w, h, i, n, r, qp, period, frames)
-    E4process.decode_complete(filepath)
+    # E4process.decode_complete(filepath)

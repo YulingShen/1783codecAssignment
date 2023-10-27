@@ -131,6 +131,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, num_frames=None):
     diff_file.write(line)
     diff_file.write("\n")
     bit_sum = 0
+    bit_count_arr = []
     if num_frames is None or len(frame_block_array) < num_frames:
         num_frames = len(frame_block_array)
     frame_block_array = frame_block_array[:num_frames]
@@ -165,6 +166,8 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, num_frames=None):
         # decode end
         if x % period != 0:
             prediction = prediction_decode.decode_residual_ME(prediction, res, vec, w, h, i)
+        bit_count_arr.append(bit_sum)
+        bit_sum = 0
     residual_file.close()
     diff_file.close()
     # print(bit_sum)
