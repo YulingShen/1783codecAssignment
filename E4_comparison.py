@@ -1,5 +1,8 @@
 from codec import E4process
 from utils import reader
+from matplotlib import pyplot as plt
+import numpy as np
+import configparser
 
 if __name__ == '__main__':
     filepath = './files/foreman_cif_y.yuv'
@@ -16,5 +19,5 @@ if __name__ == '__main__':
     # E4process.encode_intra(filepath, w, h, i, n, qp, frames)
     # E4process.encode_intra_period(filepath, w, h, i, n, r, qp, period, frames)
     # E4process.decode_intra_period(filepath, w, h, i, qp, period)
-    # E4process.encode_complete(filepath, w, h, i, n, r, qp, period, frames)
-    E4process.decode_complete(filepath)
+    E4process.encode_complete(filepath, w, h, i, n, r, qp, period, frames)
+    # E4process.decode_complete(filepath)

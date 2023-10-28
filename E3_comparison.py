@@ -59,9 +59,9 @@ def get_I_plot(arr_type):
     plt.close()
 
 if __name__ == '__main__':
-    filepath = './files/foreman_cif_y.yuv'
-    w = 352
-    h = 288
+    filepath = './files/mad900_y.yuv'
+    w = 176
+    h = 144
     frames = 20
     r, n, i = 4,3,8
     config = configparser.ConfigParser()
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     config_dict = {}
     for section in config.sections():
         r, n, i = int(config[section]["r"]), int(config[section]["n"]), int(config[section]["i"])
-        MAE_arr = E3process.res_ME_encode(filepath, w, h, i, n, r, frames)
+        MAE_arr, _ = E3process.res_ME_encode(filepath, w, h, i, n, r, frames)
         PSNR_arr = E3process.res_ME_decode(filepath, w, h, i) 
         np.save("PSNR_r={}n={}i={}".format(r, n, i), PSNR_arr)
         np.save("MAE_r={}n={}i={}".format(r, n, i), MAE_arr)

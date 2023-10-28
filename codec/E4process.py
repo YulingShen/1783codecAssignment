@@ -131,11 +131,13 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, num_frames=None):
     diff_file.write(line)
     diff_file.write("\n")
     bit_sum = 0
+    bit_count = 0
     if num_frames is None or len(frame_block_array) < num_frames:
         num_frames = len(frame_block_array)
     frame_block_array = frame_block_array[:num_frames]
     prediction = np.full((h, w), 128, dtype=np.uint8)
     q = quantization.generate_q(i, qp)
+    bit_count_arr=[]
     for x in range(num_frames):
         print('encode fame: ' + str(x))
         if x % period == 0:
@@ -163,15 +165,18 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, num_frames=None):
             itran = transform_decode.inverse_transform_frame(dequan).clip(-128, 127)
             res = blocking.deblock_frame(itran, w, h)
         # decode end
+        bit_count_arr.append(bit_count)
         if x % period != 0:
             prediction = prediction_decode.decode_residual_ME(prediction, res, vec, w, h, i)
     residual_file.close()
     diff_file.close()
+    return bit_count
     # print(bit_sum)
 
 
 # file process controller of E4 decoding
 def decode_complete(filepath):
+    y_only_bytes = reader.read_raw_byte_array(filepath)
     if filepath[-4:] == '.yuv':
         filepath = filepath[:-4]
     with open(filepath + '_res', 'r') as res_file:
