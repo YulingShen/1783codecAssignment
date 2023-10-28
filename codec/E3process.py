@@ -42,15 +42,17 @@ def res_ME_encode(filepath, w, h, i, n, r, num_frames=None):
     res_array = []
     recon_array = []
     MAE_arr = []
-    print("We have", len(frame_block_array), " frames")
+    abs_array = []
+    # print("We have", len(frame_block_array), " frames")
     decoder = pd.prediction_decoder()
     # padding
     prediction = np.full((h, w), 128, dtype=np.uint8)
     for x in range(num_frames):
-        print('encode fame: ' + str(x))
+        # print('encode fame: ' + str(x))
         res, vec, MAE = pe.generate_residual_ME(prediction, frame_block_array[x], w, h, n, r)
         res = blocking.deblock_frame(res, w, h)
         res_array.append(res)
+        abs_array.append(np.abs(res).astype(np.uint8))
         prediction = decoder.decode_residual_ME(prediction, res, vec, w, h, i)
         recon_array.append(prediction)
         vectors.append(vec)
@@ -59,7 +61,7 @@ def res_ME_encode(filepath, w, h, i, n, r, num_frames=None):
     reader.write_frame_array_to_file(res_array, filepath[:-4] + '_res_ME.yuv')
     reader.write_frame_array_to_file(recon_array, filepath[:-4] + '_pred_ME.yuv')
     np.save(filepath[:-4] + '_vec', vectors)
-    return np.array(MAE_arr)
+    return np.array(MAE_arr), np.array(abs_array)
 
 def res_no_ME_decode(filepath, w, h):
     if filepath[-4:] == '.yuv':
