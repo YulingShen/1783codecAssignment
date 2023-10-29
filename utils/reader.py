@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import configparser
 
 
 def read_raw_byte_array(filepath):
@@ -68,7 +69,12 @@ def write_frame_block_array_to_file(frame_block_array, filepath):
 
 
 def load_config(configpath):
+    config_dict = {}
+    config = configparser.ConfigParser()
+    config.read(configpath)
+    config_dict["r"] = config["RNI_setting"]["r"]
     return {}
+
 
 def res_abs(filepath):
     residual = np.fromfile(filepath, dtype=np.int16)
