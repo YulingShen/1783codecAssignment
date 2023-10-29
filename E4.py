@@ -5,10 +5,10 @@ if __name__ == '__main__':
     filepath = './files/foreman_cif_y.yuv'
     w = 352
     h = 288
-    i = 16
+    i = 8
     n = 3
     r = 2
-    qp = 7
+    qp = 6
     period = 4
     frames = 10
     E4process.encode_complete(filepath, w, h, i, n, r, qp, period, frames)

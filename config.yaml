@@ -1,10 +1,17 @@
 [RNI_setting]
-r = 2
+r = 4
 n = 3
 i = 8
 
 [QP]
-QP = 2
+QP = 6
+
+[I_Frame]
+period = 4
 
 [frame]
 frame = 10
+
+[resolution]
+w = 352
+h = 288

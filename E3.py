@@ -6,7 +6,7 @@ if __name__ == '__main__':
     w = 352
     h = 288
     i = 8
-    n = 2
+    n = 3
     r = 4
     frames = 30
     E3process.res_ME_encode(filepath, w, h, i, n, r, frames)
