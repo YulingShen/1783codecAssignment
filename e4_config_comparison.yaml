@@ -1,0 +1,128 @@
+[PLOT1-period1-qp0]
+i = 8
+qp = 0
+period = 1
+
+[PLOT1-period4-qp0]
+i = 8
+qp = 0
+period = 4
+
+[PLOT1-period10-qp0]
+i = 8
+qp = 0
+period = 10
+
+[PLOT1-period1-qp3]
+i = 8
+qp = 3
+period = 1
+
+[PLOT1-period4-qp3]
+i = 8
+qp = 3
+period = 4
+
+[PLOT1-period10-qp3]
+i = 8
+qp = 3
+period = 10
+
+[PLOT1-period1-qp6]
+i = 8
+qp = 6
+period = 1
+
+[PLOT1-period4-qp6]
+i = 8
+qp = 6
+period = 4
+
+[PLOT1-period10-qp6]
+i = 8
+qp = 6
+period = 10
+
+[PLOT1-period1-qp9]
+i = 8
+qp = 9
+period = 1
+
+[PLOT1-period4-qp9]
+i = 8
+qp = 9
+period = 4
+
+
+[PLOT1-period10-qp9]
+i = 8
+qp = 9
+period = 10
+
+
+########################################################
+
+[PLOT2-period1-qp1]
+i = 16
+qp = 1
+period = 1
+
+[PLOT2-period4-qp1]
+i = 16
+qp = 1
+period = 4
+
+[PLOT2-period10-qp1]
+i = 16
+qp = 1
+period = 10
+
+[PLOT1-period1-qp4]
+i = 16
+qp = 4
+period = 1
+
+[PLOT1-period4-qp4]
+i = 16
+qp = 4
+period = 4
+
+
+[PLOT1-period10-qp4]
+i = 16
+qp = 4
+period = 10
+
+
+[PLOT1-period1-qp7]
+i = 16
+qp = 7
+period = 1
+
+
+[PLOT1-period4-qp7]
+i = 16
+qp = 7
+period = 4
+
+
+[PLOT1-period10-qp7]
+i = 16
+qp = 7
+period = 10
+
+
+[PLOT1-period1-qp10]
+i = 16
+qp = 10
+period = 1
+
+[PLOT1-period4-qp10]
+i = 16
+qp = 10
+period = 4
+
+[PLOT1-period10-qp10]
+i = 16
+qp = 10
+period = 10

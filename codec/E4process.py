@@ -67,7 +67,7 @@ def encode_intra_period(filepath, w, h, i, n, r, qp, period, num_frames=None):
     prediction = np.full((h, w), 128, dtype=np.uint8)
     q = quantization.generate_q(i, qp)
     for x in range(num_frames):
-        print('encode fame: ' + str(x))
+        # print('encode fame: ' + str(x))
         if x % period == 0:
             res, prediction, vec, quan_frame = prediction_encode.intra_residual(frame_block_array[x], n, q)
             quan_array.append(quan_frame)
@@ -118,6 +118,12 @@ def decode_intra_period(filepath, w, h, i, qp, period):
         video.append(prediction)
     reader.write_frame_array_to_file(video, filepath + '_recon.yuv')
 
+def calculate_psnr(img1, img2, max_value=255):
+    """"Calculating peak signal-to-noise ratio (PSNR) between two images."""
+    mse = np.mean((np.array(img1) - np.array(img2)) ** 2)
+    if mse == 0:
+        return 100
+    return 20 * np.log10(max_value / (np.sqrt(mse)))
 
 # final process controller for E4 encoding
 def encode_complete(filepath, w, h, i, n, r, qp, period, num_frames=None):
@@ -132,13 +138,14 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, num_frames=None):
     diff_file.write("\n")
     bit_sum = 0
     bit_count_arr = []
+    PSNR_arr = []
     if num_frames is None or len(frame_block_array) < num_frames:
         num_frames = len(frame_block_array)
     frame_block_array = frame_block_array[:num_frames]
     prediction = np.full((h, w), 128, dtype=np.uint8)
     q = quantization.generate_q(i, qp)
     for x in range(num_frames):
-        print('encode fame: ' + str(x))
+        # print('encode fame: ' + str(x))
         if x % period == 0:
             res, prediction, vec, quan_frame = prediction_encode.intra_residual(frame_block_array[x], n, q)
             code, bit_count = entropy_encode.entropy_encode_quan_frame_block(quan_frame)
@@ -168,9 +175,12 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, num_frames=None):
             prediction = prediction_decode.decode_residual_ME(prediction, res, vec, w, h, i)
         bit_count_arr.append(bit_sum)
         bit_sum = 0
+        PSNR_arr.append(calculate_psnr(blocking.deblock_frame(frame_block_array[x], w, h), prediction))
+
     residual_file.close()
     diff_file.close()
     # print(bit_sum)
+    return bit_count_arr, PSNR_arr
 
 
 # file process controller of E4 decoding
