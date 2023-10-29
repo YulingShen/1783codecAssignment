@@ -72,8 +72,15 @@ def load_config(configpath):
     config_dict = {}
     config = configparser.ConfigParser()
     config.read(configpath)
-    config_dict["r"] = config["RNI_setting"]["r"]
-    return {}
+    config_dict["r"] = int(config["RNI_setting"]["r"])
+    config_dict["n"] = int(config["RNI_setting"]["n"])
+    config_dict["i"] = int(config["RNI_setting"]["i"])
+    config_dict["qp"] = int(config["QP"]["QP"])
+    config_dict["period"] = int(config["I_Frame"]["period"])
+    config_dict["frame"] = int(config["frame"]["frame"])
+    config_dict["w"] = int(config["resolution"]["w"])
+    config_dict["h"] = int(config["resolution"]["h"])
+    return config_dict
 
 
 def res_abs(filepath):

@@ -3,13 +3,15 @@ from utils import reader
 
 if __name__ == '__main__':
     filepath = './files/foreman_cif_y.yuv'
-    w = 352
-    h = 288
-    i = 8
-    n = 3
-    r = 2
-    qp = 6
-    period = 4
-    frames = 10
-    E4process.encode_complete(filepath, w, h, i, n, r, qp, period, frames)
+    configpath = './config.yaml'
+    config_dict = reader.load_config(configpath)
+    w = config_dict['w']
+    h = config_dict['h']
+    i = config_dict['i']
+    n = config_dict['n']
+    r = config_dict['r']
+    qp = config_dict['qp']
+    period = config_dict['period']
+    frame = config_dict['frame']
+    E4process.encode_complete(filepath, w, h, i, n, r, qp, period, frame)
     E4process.decode_complete(filepath)
