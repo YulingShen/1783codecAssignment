@@ -17,4 +17,4 @@ if __name__ == '__main__':
     # E4process.encode_intra_period(filepath, w, h, i, n, r, qp, period, frames)
     # E4process.decode_intra_period(filepath, w, h, i, qp, period)
     E4process.encode_complete(filepath, w, h, i, n, r, qp, period, frames)
-    # E4process.decode_complete(filepath)
+    E4process.decode_complete(filepath)

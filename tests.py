@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from codec import quantization
+from codec import quantization, E3process
 from codec.encoder import transform_encode, quantization_encode, entropy_encode
 from codec.decoder import transform_decode, quantization_decode, entropy_decode
 from utils import reader
@@ -23,4 +23,12 @@ def closest_mult(x, n):
 
 
 if __name__ == '__main__':
-    reader.res_abs("./files/foreman_cif_y_res_ME.yuv")
+    filepath = './files/foreman_cif_y.yuv'
+    w = 352
+    h = 288
+    i = 8
+    n = 2
+    r = 4
+    frames = 30
+    for n in [1, 2, 3]:
+        E3process.res_ME_encode(filepath, w, h, i, n, r, frames)
