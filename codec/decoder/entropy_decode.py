@@ -17,11 +17,14 @@ def decode_vec_one_frame(code_str, size, mv=True):
     if mv:
         x_array, code_str = get_size(code_str, size)
         y_array, code_str = get_size(code_str, size)
-        while len(x_array) < size:
-            x_array.append(0)
-        while len(y_array) < size:
-            y_array.append(0)
-        val_array = np.array([x_array, y_array]).T
+        k_array, code_str = get_size(code_str, size)
+        # while len(x_array) < size:
+        #     x_array.append(0)
+        # while len(y_array) < size:
+        #     y_array.append(0)
+        # while len(k_array) < size:
+        #     k_array.append(0)
+        val_array = np.array([x_array, y_array, k_array]).T
     else:
         val_array, code_str = get_size(code_str, size)
         while len(val_array) < size:

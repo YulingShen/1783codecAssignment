@@ -24,18 +24,13 @@ def entropy_encode_vec(vector_array):
     result = ""
     bit_sum = 0
     if len(vector_array.shape) == 2:
-        x_array = vector_array[:, 0]
-        rle_x = RLE(x_array)
-        for each in rle_x:
-            code, bits = exp_golomb(each)
-            result = result + code
-            bit_sum = bit_sum + bits
-        y_array = vector_array[:, 1]
-        rle_y = RLE(y_array)
-        for each in rle_y:
-            code, bits = exp_golomb(each)
-            result = result + code
-            bit_sum = bit_sum + bits
+        for d in range(vector_array.shape[1]):
+            arr = vector_array[:, d]
+            rle = RLE(arr)
+            for each in rle:
+                code, bits = exp_golomb(each)
+                result = result + code
+                bit_sum = bit_sum + bits
     else:
         rle = RLE(vector_array)
         for each in rle:

@@ -80,6 +80,7 @@ def load_config(configpath):
     config_dict["frame"] = int(config["frame"]["frame"])
     config_dict["w"] = int(config["resolution"]["w"])
     config_dict["h"] = int(config["resolution"]["h"])
+    config_dict["nRefFrames"] = int(config["nRefFrames"]["nRefFrames"])
     return config_dict
 
 

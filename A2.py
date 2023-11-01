@@ -1,4 +1,4 @@
-from codec import E4process
+from codec import A2process
 from utils import reader
 
 if __name__ == '__main__':
@@ -13,5 +13,6 @@ if __name__ == '__main__':
     qp = config_dict['qp']
     period = config_dict['period']
     frame = config_dict['frame']
-    E4process.encode_complete(filepath, w, h, i, n, r, qp, period, frame)
-    E4process.decode_complete(filepath)
+    nRefFrames = config_dict['nRefFrames']
+    A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, frame)
+    A2process.decode_complete(filepath)

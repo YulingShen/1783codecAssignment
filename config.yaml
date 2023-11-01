@@ -15,3 +15,6 @@ frame = 10
 [resolution]
 w = 352
 h = 288
+
+[nRefFrames]
+nRefFrames = 4
