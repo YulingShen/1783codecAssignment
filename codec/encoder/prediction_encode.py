@@ -1,5 +1,8 @@
 import numpy as np
 
+from codec.decoder import quantization_decode, transform_decode
+from codec.encoder import transform_encode, quantization_encode
+
 
 def closest_multi_power2(x, n):
     base = 2 ** n
@@ -66,3 +69,51 @@ def generate_residual_ME(prediction_array, frame_block, w, h, n, r):
             block_residual[i][j] = block
             vector_array.append([min_x, min_y, min_k])
     return block_residual, vector_array, MAE_sum / (h * w)
+
+
+def intra_residual(frame_block, n, q):
+    block_size = len(frame_block[0][0])
+    n_h = len(frame_block)
+    n_w = len(frame_block[0])
+    # 0 for horizontal, 1 for vertical
+    mode_array = []
+    block_residual = np.zeros((n_h, n_w, block_size, block_size), dtype=np.int16)
+    pred = np.zeros((n_h, n_w, block_size, block_size), dtype=np.uint8)
+    blank = np.full((block_size, block_size), 128, dtype=np.int16)
+    quan_frame = np.zeros((n_h, n_w, block_size, block_size), dtype=np.int16)
+    for i in range(n_h):
+        for j in range(n_w):
+            curr_block = frame_block[i][j]
+            # vertical
+            prediction_block_ver = blank
+            if i != 0:
+                prev = pred[i - 1][j]
+                prediction_block_ver = np.tile(prev[block_size - 1], (block_size, 1))
+            diff_ver = np.subtract(curr_block.astype(np.int16), prediction_block_ver.astype(np.int16))
+            MAE_ver = np.sum(np.abs(diff_ver))
+            # horizontal
+            prediction_block_hor = blank
+            if j != 0:
+                prev = pred[i][j - 1]
+                prediction_block_hor = np.tile(prev[:, block_size - 1], (block_size, 1)).transpose()
+            diff_hor = np.subtract(curr_block.astype(np.int16), prediction_block_hor.astype(np.int16))
+            MAE_hor = np.sum(np.abs(diff_hor))
+            if MAE_ver < MAE_hor:
+                mode_array.append(1)
+                diff = diff_ver
+                prediction_block = prediction_block_ver
+            else:
+                mode_array.append(0)
+                diff = diff_hor
+                prediction_block = prediction_block_hor
+            for x in range(block_size):
+                for y in range(block_size):
+                    diff[x][y] = closest_multi_power2(diff[x][y], n)
+            block_residual[i][j] = diff
+            tran = transform_encode.transform_block(diff)
+            quan = quantization_encode.quantization_block(tran, q)
+            quan_frame[i][j] = quan
+            dequan = quantization_decode.dequantization_block(quan, q)
+            itran = transform_decode.inverse_transform_block(dequan)
+            pred[i][j] = np.add(prediction_block, itran).clip(0, 255).astype(np.uint8)
+    return block_residual, pred, mode_array, quan_frame
