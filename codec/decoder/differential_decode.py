@@ -5,7 +5,7 @@ def differential_decode(diff_array):
     diff_array = np.array(diff_array)
     vec = np.array(diff_array)
     if len(diff_array.shape) == 2:
-        prev = np.zeros(len(diff_array.shape))
+        prev = np.zeros(diff_array.shape[1])
         for x in range(diff_array.shape[0]):
             vec[x] = np.add(diff_array[x], prev)
             prev = vec[x]

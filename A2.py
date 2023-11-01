@@ -14,5 +14,5 @@ if __name__ == '__main__':
     period = config_dict['period']
     frame = config_dict['frame']
     nRefFrames = config_dict['nRefFrames']
-    A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, frame)
+    # A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, frame)
     A2process.decode_complete(filepath)
