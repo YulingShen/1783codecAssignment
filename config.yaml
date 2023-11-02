@@ -18,3 +18,12 @@ h = 288
 
 [nRefFrames]
 nRefFrames = 4
+
+[VBSEnable]
+VBSEnable = True
+
+[FMEEnable]
+FMEEnable = True
+
+[FastME]
+FastME = True

@@ -81,6 +81,9 @@ def load_config(configpath):
     config_dict["w"] = int(config["resolution"]["w"])
     config_dict["h"] = int(config["resolution"]["h"])
     config_dict["nRefFrames"] = int(config["nRefFrames"]["nRefFrames"])
+    config_dict["VBSEnable"] = bool(config["VBSEnable"]["VBSEnable"])
+    config_dict["FMEEnable"] = bool(config["FMEEnable"]["FMEEnable"])
+    config_dict["FastME"] = bool(config["FastME"]["FastME"])
     return config_dict
 
 

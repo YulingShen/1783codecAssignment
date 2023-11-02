@@ -1,5 +1,8 @@
 import numpy as np
 
+from utils import reader
+
 if __name__ == '__main__':
-    a = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])
-    print(a.shape[1])
+    configpath = './config.yaml'
+    cfg = reader.load_config(configpath)
+    print(cfg)

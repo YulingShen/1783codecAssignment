@@ -20,7 +20,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, num_frames=
     if num_frames is None or len(frame_block_array) < num_frames:
         num_frames = len(frame_block_array)
     frame_block_array = frame_block_array[:num_frames]
-    prediction = np.full((h, w), 128, dtype=np.uint8)
+    # prediction = np.full((h, w), 128, dtype=np.uint8)
     q = quantization.generate_q(i, qp)
     prediction_array = []
     for x in range(num_frames):
