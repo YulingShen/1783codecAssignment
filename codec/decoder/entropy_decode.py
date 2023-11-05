@@ -35,7 +35,7 @@ def decode_vec_one_frame(code_str, size, mv=True):
 
 def decode_setting(code_str):
     values = []
-    for i in range(5):
+    for i in range(6):
         zero_count = 0
         while code_str[zero_count] == "0":
             zero_count += 1
@@ -43,7 +43,11 @@ def decode_setting(code_str):
         code_str = code_str[zero_count * 2 + 1:]
         val = golomb_decode(bit_str)
         values.append(val)
-    return values[0], values[1], values[2], values[3], values[4]
+    if values[5] == 1:
+        FMEEnable = True
+    else:
+        FMEEnable = False
+    return values[0], values[1], values[2], values[3], values[4], FMEEnable
 
 
 def get_size(code_str, size):

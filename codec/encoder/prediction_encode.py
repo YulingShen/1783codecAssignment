@@ -1,5 +1,6 @@
 import numpy as np
 
+from utils import psnr
 from codec.decoder import quantization_decode, transform_decode
 from codec.encoder import transform_encode, quantization_encode
 
@@ -31,7 +32,7 @@ def compare_MAE(min_MAE, min_x, min_y, min_k, MAE, x, y, k):
     return MAE, x, y, k, True
 
 
-def generate_residual_ME(prediction_array, frame_block, w, h, n, r):
+def generate_residual_ME(prediction_array, frame_block, w, h, n, r, FMEEnable):
     block_size = len(frame_block[0][0])
     n_h = len(frame_block)
     n_w = len(frame_block[0])
@@ -43,32 +44,82 @@ def generate_residual_ME(prediction_array, frame_block, w, h, n, r):
             # top left of the block
             i_h = i * block_size
             i_w = j * block_size
-            min_MAE = 256 * block_size * block_size
-            min_x = r + 1
-            min_y = r + 1
-            min_k = len(prediction_array) + 1
-            block = []
-            # full range search
-            for x in range(-r, r + 1):
-                if x + i_h < 0 or x + i_h + block_size > h:
-                    continue
-                for y in range(-r, r + 1):
-                    if y + i_w < 0 or y + i_w + block_size > w:
-                        continue
-                    for k in range(len(prediction_array)):
-                        pred = prediction_array[k][x + i_h: x + i_h + block_size, y + i_w: y + i_w + block_size]
-                        diff = np.subtract(frame_block[i][j].astype(np.int16), pred.astype(np.int16))
-                        MAE = np.sum(np.abs(diff))
-                        min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, MAE, x, y, k)
-                        if changed:
-                            block = diff
+            if not FMEEnable:
+                min_MAE, block, vec = search_motion_non_fraction(w, h, i_h, i_w, block_size, r, prediction_array,
+                                                                 frame_block[i][j])
+            else:
+                min_MAE, block, vec = search_motion_fraction(w, h, i_h, i_w, block_size, r, prediction_array,
+                                                             frame_block[i][j])
             MAE_sum += min_MAE
             for x in range(block_size):
                 for y in range(block_size):
                     block[x][y] = closest_multi_power2(block[x][y], n)
             block_residual[i][j] = block
-            vector_array.append([min_x, min_y, min_k])
+            vector_array.append(vec)
     return block_residual, vector_array, MAE_sum / (h * w)
+
+
+def search_motion_non_fraction(w, h, i_h, i_w, block_size, r, prediction_array, ref):
+    # top left of the block
+    min_MAE = 256 * block_size * block_size
+    min_x = r + 1
+    min_y = r + 1
+    min_k = len(prediction_array) + 1
+    block = []
+    # full range search
+    for x in range(-r, r + 1):
+        if x + i_h < 0 or x + i_h + block_size > h:
+            continue
+        for y in range(-r, r + 1):
+            if y + i_w < 0 or y + i_w + block_size > w:
+                continue
+            for k in range(len(prediction_array)):
+                pred = prediction_array[k][x + i_h: x + i_h + block_size, y + i_w: y + i_w + block_size]
+                diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+                MAE = np.sum(np.abs(diff))
+                min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, MAE, x, y, k)
+                if changed:
+                    block = diff
+    return min_MAE, block, [min_x, min_y, min_k]
+
+
+def search_motion_fraction(w, h, i_h, i_w, block_size, r, prediction_array, ref):
+    # top left of the block
+    min_MAE = 256 * block_size * block_size
+    min_x = 2 * r + 1
+    min_y = 2 * r + 1
+    min_k = len(prediction_array) + 1
+    block = []
+    # full range search
+    for x in range(-2 * r, 2 * r + 1):
+        if x / 2 + i_h < 0 or x / 2 + i_h + block_size > h:
+            continue
+        for y in range(-2 * r, 2 * r + 1):
+            if y / 2 + i_w < 0 or y / 2 + i_w + block_size > w:
+                continue
+            if x % 2 == 0:
+                x_arr = [x // 2]
+            else:
+                x_arr = [x // 2, (x + 1) // 2]
+            if y % 2 == 0:
+                y_arr = [y // 2]
+            else:
+                y_arr = [y // 2, (y + 1) // 2]
+            for k in range(len(prediction_array)):
+                pred = np.zeros((block_size, block_size), dtype=np.int16)
+                block_count = 0
+                for each_x in x_arr:
+                    for each_y in y_arr:
+                        pred = np.add(pred, prediction_array[k][each_x + i_h: each_x + i_h + block_size,
+                                            each_y + i_w: each_y + i_w + block_size])
+                        block_count += 1
+                pred = pred // block_count
+                diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+                MAE = np.sum(np.abs(diff))
+                min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, MAE, x, y, k)
+                if changed:
+                    block = diff
+    return min_MAE, block, [min_x, min_y, min_k]
 
 
 def intra_residual(frame_block, n, q):

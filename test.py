@@ -3,6 +3,7 @@ import numpy as np
 from utils import reader
 
 if __name__ == '__main__':
-    configpath = './config.yaml'
-    cfg = reader.load_config(configpath)
-    print(cfg)
+    # a = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])
+    # b = a / 2
+    # print(b)
+    print(np.log2(16) % 1 == 0)

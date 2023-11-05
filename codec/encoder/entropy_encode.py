@@ -40,7 +40,7 @@ def entropy_encode_vec(vector_array):
     return result, bit_sum
 
 
-def entropy_encode_setting(w, h, i, qp, period):
+def entropy_encode_setting(w, h, i, qp, period, FMEEnable):
     result = ""
     bit_sum = 0
     code, bits = exp_golomb(w)
@@ -56,6 +56,12 @@ def entropy_encode_setting(w, h, i, qp, period):
     result += code
     bit_sum += bits
     code, bits = exp_golomb(period)
+    result += code
+    bit_sum += bits
+    if FMEEnable:
+        code, bits = exp_golomb(1)
+    else:
+        code, bits = exp_golomb(0)
     result += code
     bit_sum += bits
     return result, bit_sum

@@ -13,6 +13,8 @@ if __name__ == '__main__':
     qp = config_dict['qp']
     period = config_dict['period']
     frame = config_dict['frame']
+    VBSEnable = config_dict['VBSEnable']
     nRefFrames = config_dict['nRefFrames']
-    # A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, frame)
+    FMEEnable = config_dict['FMEEnable']
+    A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, FMEEnable, frame)
     A2process.decode_complete(filepath)

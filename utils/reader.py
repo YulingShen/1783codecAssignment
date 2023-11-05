@@ -84,6 +84,9 @@ def load_config(configpath):
     config_dict["VBSEnable"] = bool(config["VBSEnable"]["VBSEnable"])
     config_dict["FMEEnable"] = bool(config["FMEEnable"]["FMEEnable"])
     config_dict["FastME"] = bool(config["FastME"]["FastME"])
+    # here use j instead if variable block size is enabled
+    if config_dict["VBSEnable"]:
+        config_dict["i"] = 2 ** int(config["VBSEnable"]["j"])
     return config_dict
 
 

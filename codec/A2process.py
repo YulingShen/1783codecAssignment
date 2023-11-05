@@ -6,14 +6,14 @@ import numpy as np
 
 
 # final process controller for E4 encoding
-def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, num_frames=None):
+def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, FMEEnable, num_frames=None):
     y_only_bytes = reader.read_raw_byte_array(filepath)
     frame_block_array = blocking.block_raw(y_only_bytes, w, h, i, num_frames)
     # files to write
     residual_file = open(filepath[:-4] + '_res', 'w')
     diff_file = open(filepath[:-4] + '_diff', 'w')
     # config is written to the first line of diff file
-    line, bits = entropy_encode.entropy_encode_setting(w, h, i, qp, period)
+    line, bits = entropy_encode.entropy_encode_setting(w, h, i, qp, period, FMEEnable)
     diff_file.write(line)
     diff_file.write("\n")
     bit_count_arr = []
@@ -37,7 +37,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, num_frames=
             prediction = blocking.deblock_frame(prediction, w, h)
             prediction_array = [prediction]
         else:
-            res, vec, MAE = prediction_encode.generate_residual_ME(prediction_array, frame_block_array[x], w, h, n, r)
+            res, vec, MAE = prediction_encode.generate_residual_ME(prediction_array, frame_block_array[x], w, h, n, r, FMEEnable)
             tran = transform_encode.transform_frame(res)
             quan = quantization_encode.quantization_frame(tran, q)
             code, bit_count = entropy_encode.entropy_encode_quan_frame_block(quan)
@@ -50,7 +50,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, num_frames=
             dequan = quantization_decode.dequantization_frame(quan, q)
             itran = transform_decode.inverse_transform_frame(dequan).clip(-128, 127)
             res = blocking.deblock_frame(itran, w, h)
-            prediction = prediction_decode.decode_residual_ME(prediction_array, res, vec, w, h, i)
+            prediction = prediction_decode.decode_residual_ME(prediction_array, res, vec, w, h, i, FMEEnable)
             prediction_array.insert(0, prediction)
             if len(prediction_array) == nRefFrames:
                 prediction_array = prediction_array[:nRefFrames]
@@ -69,7 +69,7 @@ def decode_complete(filepath):
     with open(filepath + '_diff', 'r') as vec_file:
         setting = vec_file.readline()
         vec_code = vec_file.read()
-    w, h, i, qp, period = entropy_decode.decode_setting(setting)
+    w, h, i, qp, period, FMEEnable = entropy_decode.decode_setting(setting)
     q = quantization.generate_q(i, qp)
     video = []
     recon_array = []
@@ -90,7 +90,7 @@ def decode_complete(filepath):
         else:
             diff_array, vec_code = entropy_decode.decode_vec_one_frame(vec_code, n_block_h * n_block_w, True)
             vec_array = differential_decode.differential_decode(diff_array)
-            recon = prediction_decode.decode_residual_ME(recon_array, res, vec_array, w, h, i)
+            recon = prediction_decode.decode_residual_ME(recon_array, res, vec_array, w, h, i, FMEEnable)
             recon_array.insert(0, recon)
             # here use the upper limit of nRefFrame for easier coding purpose
             if len(recon_array) == 4:
