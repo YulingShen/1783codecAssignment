@@ -15,6 +15,8 @@ if __name__ == '__main__':
     frame = config_dict['frame']
     VBSEnable = config_dict['VBSEnable']
     nRefFrames = config_dict['nRefFrames']
+    VBSEnable = config_dict['VBSEnable']
     FMEEnable = config_dict['FMEEnable']
-    A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, FMEEnable, frame)
+    FastME = config_dict['FastME']
+    A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, FMEEnable, FastME, frame)
     A2process.decode_complete(filepath)

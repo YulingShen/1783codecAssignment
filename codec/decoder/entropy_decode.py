@@ -6,10 +6,33 @@ def decode_quan_one_frame(code_str, n_w, n_h, block_len):
     quan_frame = np.zeros((n_h, n_w, block_len, block_len))
     for i in range(n_h):
         for j in range(n_w):
-            # print("block" + str(i) + ":" + str(j))
             val_array, code_str = get_size(code_str, block_size)
             block = de_RLE(val_array, block_len)
             quan_frame[i][j] = block
+    return quan_frame, code_str
+
+
+def decode_quan_one_frame_VBS(code_str, n_w, n_h, block_len, split_array):
+    block_size = block_len * block_len
+    half_block_len = int(block_len / 2)
+    sub_block_size = half_block_len * half_block_len
+    quan_frame = np.zeros((n_h, n_w, block_len, block_len))
+    for i in range(n_h):
+        for j in range(n_w):
+            split_mode = split_array[i * n_w + j]
+            if split_mode == 0:
+                val_array, code_str = get_size(code_str, block_size)
+                block = de_RLE(val_array, block_len)
+                quan_frame[i][j] = block
+            else:
+                single_block = np.zeros((block_len, block_len))
+                for k in range(4):
+                    slice_x = (k // 2) * half_block_len
+                    slice_y = (k % 2) * half_block_len
+                    val_array, code_str = get_size(code_str, sub_block_size)
+                    block = de_RLE(val_array, half_block_len)
+                    single_block[slice_x:slice_x + half_block_len, slice_y:slice_y + half_block_len] = block
+                quan_frame[i][j] = single_block
     return quan_frame, code_str
 
 
@@ -33,9 +56,16 @@ def decode_vec_one_frame(code_str, size, mv=True):
     return val_array, code_str
 
 
+def decode_split_one_frame(code_str, size):
+    split_diff, vec_code = get_size(code_str, size)
+    while len(split_diff) < size:
+        split_diff.append(0)
+    return split_diff, vec_code
+
+
 def decode_setting(code_str):
     values = []
-    for i in range(6):
+    while len(code_str) > 0 and code_str[0] in ['0', '1']:
         zero_count = 0
         while code_str[zero_count] == "0":
             zero_count += 1
@@ -44,10 +74,14 @@ def decode_setting(code_str):
         val = golomb_decode(bit_str)
         values.append(val)
     if values[5] == 1:
+        VBSEnable = True
+    else:
+        VBSEnable = False
+    if values[6] == 1:
         FMEEnable = True
     else:
         FMEEnable = False
-    return values[0], values[1], values[2], values[3], values[4], FMEEnable
+    return values[0], values[1], values[2], values[3], values[4], VBSEnable, FMEEnable
 
 
 def get_size(code_str, size):

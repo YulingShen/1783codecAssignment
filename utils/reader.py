@@ -68,6 +68,11 @@ def write_frame_block_array_to_file(frame_block_array, filepath):
     f.close()
 
 
+def get_bool(bool_str):
+    if bool_str in ['True', 'true']:
+        return True
+    return False
+
 def load_config(configpath):
     config_dict = {}
     config = configparser.ConfigParser()
@@ -81,9 +86,9 @@ def load_config(configpath):
     config_dict["w"] = int(config["resolution"]["w"])
     config_dict["h"] = int(config["resolution"]["h"])
     config_dict["nRefFrames"] = int(config["nRefFrames"]["nRefFrames"])
-    config_dict["VBSEnable"] = bool(config["VBSEnable"]["VBSEnable"])
-    config_dict["FMEEnable"] = bool(config["FMEEnable"]["FMEEnable"])
-    config_dict["FastME"] = bool(config["FastME"]["FastME"])
+    config_dict["VBSEnable"] = get_bool(config["VBSEnable"]["VBSEnable"])
+    config_dict["FMEEnable"] = get_bool(config["FMEEnable"]["FMEEnable"])
+    config_dict["FastME"] = get_bool(config["FastME"]["FastME"])
     # here use j instead if variable block size is enabled
     if config_dict["VBSEnable"]:
         config_dict["i"] = 2 ** int(config["VBSEnable"]["j"])

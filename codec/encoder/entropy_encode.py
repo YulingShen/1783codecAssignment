@@ -20,6 +20,23 @@ def entropy_encode_quan_frame_block(quan_frame_block):
     return coded_string, bit_sum
 
 
+def entropy_encode_single_block(block):
+    block_size = len(block)
+    coded_string = ""
+    bit_sum = 0
+    num_array = []
+    for xy_sum in range(block_size * 2 - 1):
+        for x in range(max(0, xy_sum - block_size + 1), min(xy_sum + 1, block_size)):
+            y = xy_sum - x
+            num_array.append(block[x][y])
+    rle_array = RLE(num_array)
+    for each in rle_array:
+        code, bits = exp_golomb(each)
+        coded_string = coded_string + code
+        bit_sum = bit_sum + bits
+    return coded_string, bit_sum
+
+
 def entropy_encode_vec(vector_array):
     result = ""
     bit_sum = 0
@@ -40,7 +57,17 @@ def entropy_encode_vec(vector_array):
     return result, bit_sum
 
 
-def entropy_encode_setting(w, h, i, qp, period, FMEEnable):
+def entropy_encode_single_vec(vector):
+    result = ""
+    bit_sum = 0
+    for each in vector:
+        code, bits = exp_golomb(each)
+        result = result + code
+        bit_sum = bit_sum + bits
+    return result, bit_sum
+
+
+def entropy_encode_setting(w, h, i, qp, period, VBSEnable, FMEEnable):
     result = ""
     bit_sum = 0
     code, bits = exp_golomb(w)
@@ -56,6 +83,12 @@ def entropy_encode_setting(w, h, i, qp, period, FMEEnable):
     result += code
     bit_sum += bits
     code, bits = exp_golomb(period)
+    result += code
+    bit_sum += bits
+    if VBSEnable:
+        code, bits = exp_golomb(1)
+    else:
+        code, bits = exp_golomb(0)
     result += code
     bit_sum += bits
     if FMEEnable:
