@@ -73,6 +73,7 @@ def get_bool(bool_str):
         return True
     return False
 
+
 def load_config(configpath):
     config_dict = {}
     config = configparser.ConfigParser()
@@ -87,8 +88,14 @@ def load_config(configpath):
     config_dict["h"] = int(config["resolution"]["h"])
     config_dict["nRefFrames"] = int(config["nRefFrames"]["nRefFrames"])
     config_dict["VBSEnable"] = get_bool(config["VBSEnable"]["VBSEnable"])
+    config_dict["lambda_coefficient"] = float(config["VBSEnable"]["lambda_coefficient"])
     config_dict["FMEEnable"] = get_bool(config["FMEEnable"]["FMEEnable"])
     config_dict["FastME"] = get_bool(config["FastME"]["FastME"])
+    # fit nRefFrames into [1, 4]
+    if config_dict["nRefFrames"] < 1:
+        config_dict["nRefFrames"] = 1
+    if config_dict["nRefFrames"] > 4:
+        config_dict["nRefFrames"] = 4
     # here use j instead if variable block size is enabled
     if config_dict["VBSEnable"]:
         config_dict["i"] = 2 ** int(config["VBSEnable"]["j"])

@@ -448,8 +448,6 @@ def intra_residual_VBS(frame_block, n, lambda_val, q_non_split, q_split):
     prev_split = 0
     entropy_encode_str = ''
     pred = np.zeros((n_h, n_w, block_size, block_size), dtype=np.uint8)
-    quanti = np.zeros((n_h, n_w, block_size, block_size), dtype=np.int16)
-    itransform = np.zeros((n_h, n_w, block_size, block_size), dtype=np.int16)
     blank = np.full((block_size, block_size), 128, dtype=np.int16)
     blank_half = np.full((half_block_size, half_block_size), 128, dtype=np.int16)
     for i in range(n_h):
@@ -502,8 +500,6 @@ def intra_residual_VBS(frame_block, n, lambda_val, q_non_split, q_split):
             ssd_split_sum = 0
             prev_mode_split = prev_mode
             mode_array_split = []
-            quan_split = np.zeros((block_size, block_size), dtype=np.int16)
-            itransform_split = np.zeros((block_size, block_size), dtype=np.int16)
             prediction_block_split = np.zeros((block_size, block_size), dtype=np.uint8)
             block = np.zeros((half_block_size, half_block_size), dtype=np.int16)
             # split indicator bits
@@ -551,13 +547,11 @@ def intra_residual_VBS(frame_block, n, lambda_val, q_non_split, q_split):
                             block[x][y] = closest_multi_power2(res_original[x][y], n)
                     tran = transform_encode.transform_block(block)
                     quan = quantization_encode.quantization_block(tran, q_split)
-                    quan_split[slice_x:slice_x + half_block_size, slice_y:slice_y + half_block_size] = quan
                     code_str, bits_split = entropy_encode.entropy_encode_single_block(quan.astype(np.int16))
                     code_str_split += code_str
                     bits_split_sum += bits_split
                     dequan = quantization_decode.dequantization_block(quan, q_split)
                     itran_split = transform_decode.inverse_transform_block(dequan)
-                    itransform_split[slice_x:slice_x + half_block_size, slice_y:slice_y + half_block_size] = itran_split
                     ssd = evaluation.calculate_ssd(itran_split, res_original)
                     ssd_split_sum += ssd
                     # mode part
@@ -576,14 +570,10 @@ def intra_residual_VBS(frame_block, n, lambda_val, q_non_split, q_split):
                 pred[i][j] = np.add(prediction_block_non_split, itran_non_split).clip(0, 255).astype(np.uint8)
                 entropy_encode_str += code_str_non_split
                 prev_split = 0
-                quanti[i][j] = quan_non_split
-                itransform[i][j] = itran_non_split
             else:
                 split_array.append(1)
                 mode_array += mode_array_split
                 pred[i][j] = prediction_block_split
                 entropy_encode_str += code_str_split
                 prev_split = 1
-                quanti[i][j] = quan_split
-                itransform[i][j] = itransform_split
-    return pred, mode_array, split_array, entropy_encode_str, quanti, itransform
+    return pred, mode_array, split_array, entropy_encode_str

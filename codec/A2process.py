@@ -6,7 +6,7 @@ import numpy as np
 
 
 # final process controller for E4 encoding
-def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, FMEEnable, FastME, num_frames=None):
+def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME, num_frames=None):
     y_only_bytes = reader.read_raw_byte_array(filepath)
     frame_block_array = blocking.block_raw(y_only_bytes, w, h, i, num_frames)
     # files to write
@@ -58,7 +58,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                     prediction_array = prediction_array[:nRefFrames]
             bit_count_arr.append(bit_sum)
     else:
-        lambda_val = evaluation.get_lambda(qp)
+        lambda_val = evaluation.get_lambda(qp, lambda_coefficient)
         if qp > 0:
             q_split = quantization.generate_q(int(i / 2), qp - 1)
         else:
@@ -66,7 +66,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
         for x in range(num_frames):
             print('encode fame: ' + str(x))
             if x % period == 0:
-                prediction, vec, split, res_code, quanti, itransform = prediction_encode.intra_residual_VBS(frame_block_array[x], n,
+                prediction, vec, split, res_code = prediction_encode.intra_residual_VBS(frame_block_array[x], n,
                                                                                         lambda_val, q, q_split)
                 split = np.array(split)
                 prediction = blocking.deblock_frame(prediction, w, h)
@@ -77,10 +77,6 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 diff_file.write(code)
                 code, bit_count = entropy_encode.entropy_encode_vec(differential_encode.differential_encode(vec))
                 diff_file.write(code)
-                with open('./files/test.npy', 'wb') as f:
-                    np.save(f, quanti)
-                with open('./files/test2.npy', 'wb') as f:
-                    np.save(f, itransform)
             else:
                 block_itran, vec, split, res_code = prediction_encode.generate_residual_ME_VBS(prediction_array,
                                                                                                frame_block_array[x], w,

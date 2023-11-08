@@ -16,7 +16,9 @@ if __name__ == '__main__':
     VBSEnable = config_dict['VBSEnable']
     nRefFrames = config_dict['nRefFrames']
     VBSEnable = config_dict['VBSEnable']
+    # this is the coefficient to adjust lambda value
+    lambda_coefficient = config_dict['lambda_coefficient']
     FMEEnable = config_dict['FMEEnable']
     FastME = config_dict['FastME']
-    A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, FMEEnable, FastME, frame)
+    A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME, frame)
     A2process.decode_complete(filepath)

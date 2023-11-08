@@ -10,8 +10,8 @@ def calculate_psnr(img1, img2, max_value=255):
 
 
 # followings are for RDO
-def get_lambda(qp):
-    return 1.2 * 2 ** ((qp - 12) / 3)
+def get_lambda(qp, lambda_coefficient):
+    return lambda_coefficient * 2 ** ((qp - 12) / 3)
 
 
 # we would like to use SSD(sum of square difference) or SAD(sum of absolute difference)
