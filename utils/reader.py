@@ -97,8 +97,8 @@ def load_config(configpath):
     if config_dict["nRefFrames"] > 4:
         config_dict["nRefFrames"] = 4
     # here use j instead if variable block size is enabled
-    if config_dict["VBSEnable"]:
-        config_dict["i"] = 2 ** int(config["VBSEnable"]["j"])
+    # if config_dict["VBSEnable"]:
+    #     config_dict["i"] = 2 ** int(config["VBSEnable"]["j"])
     return config_dict
 
 
