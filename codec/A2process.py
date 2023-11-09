@@ -23,7 +23,6 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
     # prediction = np.full((h, w), 128, dtype=np.uint8)
     q = quantization.generate_q(i, qp)
     prediction_array = []
-    prediction_recon = []
     if not VBSEnable:
         for x in range(num_frames):
             print('encode fame: ' + str(x))
@@ -74,7 +73,6 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 split = np.array(split)
                 prediction = blocking.deblock_frame(prediction, w, h)
                 prediction_array = [prediction]
-                prediction_recon.append(prediction)
                 residual_file.write(res_code)
                 # write split indicators first, then vectors
                 code, bit_count = entropy_encode.entropy_encode_vec(differential_encode.differential_encode(split))
@@ -98,10 +96,8 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 prediction_array.insert(0, prediction)
                 if len(prediction_array) == nRefFrames:
                     prediction_array = prediction_array[:nRefFrames]
-                prediction_recon.append(prediction)
     residual_file.close()
     diff_file.close()
-    reader.write_frame_array_to_file(prediction_recon, filepath[:-4] + '_pred.yuv')
 
 
 # file process controller of E4 decoding

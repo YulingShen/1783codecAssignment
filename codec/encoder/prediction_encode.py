@@ -353,11 +353,11 @@ def search_motion_fraction(w, h, i_h, i_w, block_size, r, prediction_array, ref,
                     if x / 2 + i_h < 0 or x / 2 + i_h + block_size > h:
                         continue
                     y = origin_y
-                    if base_x % 2 == 0:
+                    if x % 2 == 0:
                         x_arr = [x // 2]
                     else:
                         x_arr = [x // 2, (x + 1) // 2]
-                    if base_y % 2 == 0:
+                    if y % 2 == 0:
                         y_arr = [y // 2]
                     else:
                         y_arr = [y // 2, (y + 1) // 2]
@@ -381,11 +381,11 @@ def search_motion_fraction(w, h, i_h, i_w, block_size, r, prediction_array, ref,
                     if y / 2 + i_w < 0 or y / 2 + i_w + block_size > w:
                         continue
                     x = origin_x
-                    if base_x % 2 == 0:
+                    if x % 2 == 0:
                         x_arr = [x // 2]
                     else:
                         x_arr = [x // 2, (x + 1) // 2]
-                    if base_y % 2 == 0:
+                    if y % 2 == 0:
                         y_arr = [y // 2]
                     else:
                         y_arr = [y // 2, (y + 1) // 2]
