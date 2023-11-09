@@ -1,13 +1,13 @@
 [RNI_setting]
 r = 4
-n = 3
+n = 0
 i = 8
 
 [QP]
-QP = 3
+QP = 0
 
 [I_Frame]
-period = 4
+period = 10
 
 [frame]
 frame = 10
@@ -17,7 +17,7 @@ w = 352
 h = 288
 
 [nRefFrames]
-nRefFrames = 2
+nRefFrames = 4
 
 [VBSEnable]
 VBSEnable = True
@@ -25,7 +25,7 @@ j = 3
 lambda_coefficient = 1.2
 
 [FMEEnable]
-FMEEnable = True
+FMEEnable = False
 
 [FastME]
 FastME = True

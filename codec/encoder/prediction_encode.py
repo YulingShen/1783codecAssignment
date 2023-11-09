@@ -196,6 +196,7 @@ def search_motion_non_fraction(w, h, i_h, i_w, block_size, r, prediction_array, 
                     if changed:
                         block = diff
     else:
+        # adjust the mvp within the range of frame
         base_x = mvp[0]
         while base_x + i_h < 0:
             base_x += 1
@@ -209,12 +210,17 @@ def search_motion_non_fraction(w, h, i_h, i_w, block_size, r, prediction_array, 
         base_pair = [base_x, base_y]
         for k in range(len(prediction_array)):
             pred_frame = prediction_array[k]
-            # get base case first
+            # location [0, 0]
+            pred = pred_frame[i_h: i_h + block_size, i_w: i_w + block_size]
+            zero_diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+            zero_MAE = np.sum(np.abs(zero_diff))
+            iter_one = True
+            # get base case
             base_x = base_pair[0]
             base_y = base_pair[1]
             pred = pred_frame[base_x + i_h: base_x + i_h + block_size, base_y + i_w: base_y + i_w + block_size]
-            diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
-            step_min_MAE = np.sum(np.abs(diff))
+            base_diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+            step_min_MAE = np.sum(np.abs(base_diff))
             search_signal = True
             while search_signal:
                 origin_MAE = step_min_MAE
@@ -230,7 +236,9 @@ def search_motion_non_fraction(w, h, i_h, i_w, block_size, r, prediction_array, 
                     MAE = np.sum(np.abs(diff))
                     if MAE < step_min_MAE:
                         base_x = x
+                        base_y = y
                         step_min_MAE = MAE
+                        base_diff = diff
                 for y_next in [-1, 1]:
                     y = origin_y + y_next
                     if y + i_w < 0 or y + i_w + block_size > w:
@@ -240,13 +248,21 @@ def search_motion_non_fraction(w, h, i_h, i_w, block_size, r, prediction_array, 
                     diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
                     MAE = np.sum(np.abs(diff))
                     if MAE < step_min_MAE:
+                        base_x = x
                         base_y = y
                         step_min_MAE = MAE
+                        base_diff = diff
                 if step_min_MAE >= origin_MAE:
                     search_signal = False
+                if iter_one and step_min_MAE >= zero_MAE:
+                    search_signal = False
+                    step_min_MAE = zero_MAE
+                    base_x = 0
+                    base_y = 0
+                    base_diff = zero_diff
             min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, step_min_MAE, base_x, base_y, k)
             if changed:
-                block = diff
+                block = base_diff
     return min_MAE, block, [min_x, min_y, min_k]
 
 
@@ -301,7 +317,12 @@ def search_motion_fraction(w, h, i_h, i_w, block_size, r, prediction_array, ref,
         base_pair = [base_x, base_y]
         for k in range(len(prediction_array)):
             pred_frame = prediction_array[k]
-            # get base case first
+            # location [0, 0]
+            pred = pred_frame[i_h: i_h + block_size, i_w: i_w + block_size]
+            zero_diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+            zero_MAE = np.sum(np.abs(zero_diff))
+            iter_one = True
+            # get base case
             base_x = base_pair[0]
             base_y = base_pair[1]
             if base_x % 2 == 0:
@@ -320,8 +341,8 @@ def search_motion_fraction(w, h, i_h, i_w, block_size, r, prediction_array, ref,
                                         each_y + i_w: each_y + i_w + block_size])
                     block_count += 1
             pred = pred // block_count
-            diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
-            step_min_MAE = np.sum(np.abs(diff))
+            base_diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+            step_min_MAE = np.sum(np.abs(base_diff))
             search_signal = True
             while search_signal:
                 origin_MAE = step_min_MAE
@@ -352,7 +373,9 @@ def search_motion_fraction(w, h, i_h, i_w, block_size, r, prediction_array, ref,
                     MAE = np.sum(np.abs(diff))
                     if MAE < step_min_MAE:
                         base_x = x
+                        base_y = y
                         step_min_MAE = MAE
+                        base_diff = diff
                 for y_next in [-1, 1]:
                     y = origin_y + y_next
                     if y / 2 + i_w < 0 or y / 2 + i_w + block_size > w:
@@ -377,14 +400,22 @@ def search_motion_fraction(w, h, i_h, i_w, block_size, r, prediction_array, ref,
                     diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
                     MAE = np.sum(np.abs(diff))
                     if MAE < step_min_MAE:
+                        base_x = x
                         base_y = y
                         step_min_MAE = MAE
+                        base_diff = diff
                 if step_min_MAE >= origin_MAE:
                     search_signal = False
+                if iter_one and step_min_MAE >= zero_MAE:
+                    search_signal = False
+                    step_min_MAE = zero_MAE
+                    base_x = 0
+                    base_y = 0
+                    base_diff = zero_diff
             min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, step_min_MAE, base_x,
                                                                 base_y, k)
             if changed:
-                block = diff
+                block = base_diff
     return min_MAE, block, [min_x, min_y, min_k]
 
 
