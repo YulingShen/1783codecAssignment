@@ -23,6 +23,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
     # prediction = np.full((h, w), 128, dtype=np.uint8)
     q = quantization.generate_q(i, qp)
     prediction_array = []
+    prediction_to_file = []
     if not VBSEnable:
         for x in range(num_frames):
             print('encode fame: ' + str(x))
@@ -57,6 +58,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 if len(prediction_array) == nRefFrames:
                     prediction_array = prediction_array[:nRefFrames]
             bit_count_arr.append(bit_sum)
+            prediction_to_file.append(prediction)
     else:
         lambda_val = evaluation.get_lambda(qp, lambda_coefficient)
         if qp > 0:
@@ -103,9 +105,11 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 if len(prediction_array) == nRefFrames:
                     prediction_array = prediction_array[:nRefFrames]
             bit_count_arr.append(bit_sum)
+            prediction_to_file.append(prediction)
     residual_file.close()
     diff_file.close()
-    np.save(filepath[:-4] + '_bits.npy', bit_count_arr)
+    reader.write_frame_array_to_file(prediction_to_file, filepath[:-4] + '_pred.yuv')
+    return prediction_to_file, bit_count_arr
 
 
 # file process controller of E4 decoding
