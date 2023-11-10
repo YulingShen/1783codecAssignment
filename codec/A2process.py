@@ -105,7 +105,6 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
             bit_count_arr.append(bit_sum)
     residual_file.close()
     diff_file.close()
-    np.save(filepath[:-4] + '_bits.npy', bit_count_arr)
 
 
 # file process controller of E4 decoding
