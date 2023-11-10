@@ -22,7 +22,7 @@ nRefFrames = 1
 [VBSEnable]
 VBSEnable = True
 j = 4
-lambda_coefficient = 1.2
+lambda_coefficient = 2.5
 
 [FMEEnable]
 FMEEnable = False
