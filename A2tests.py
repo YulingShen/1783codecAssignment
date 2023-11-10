@@ -27,7 +27,7 @@ if __name__ == '__main__':
     FastME = config_dict['FastME']
     config = configparser.ConfigParser()
     config.read("./test_config.yaml")
-    origin_array = reader.read_raw_byte_array(filepath)
+    origin_array = reader.y_only_byte_frame_array(reader.read_raw_byte_array(filepath), w, h, frame)
     psnr_array = []
     split_rate_array = []
     bits_array = []
@@ -40,6 +40,7 @@ if __name__ == '__main__':
             recon_array, bits = A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable,
                                                     lambda_coefficient, FMEEnable, FastME, frame)
             bits_array.append(bits)
+            reader.write_frame_array_to_file(recon_array, './files/foreman_cif_y_recon' + str(qp) + '_' + str(lambda_coefficient) + '.yuv')
             psnr = []
             for num in range(frame):
                 each_psnr = evaluation.calculate_psnr(origin_array[num], recon_array[num])

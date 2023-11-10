@@ -75,13 +75,16 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                                                                                         lambda_val, q, q_split)
                 residual_file.write(res_code)
                 bit_sum += len(res_code)
+                print(bit_sum)
                 # write split indicators first, then vectors
                 code, bit_count = entropy_encode.entropy_encode_vec(differential_encode.differential_encode(split))
                 diff_file.write(code)
                 bit_sum += bit_count
+                print(bit_count)
                 code, bit_count = entropy_encode.entropy_encode_vec(differential_encode.differential_encode(vec))
                 diff_file.write(code)
                 bit_sum += bit_count
+                print(bit_count)
                 prediction = blocking.deblock_frame(prediction, w, h)
                 prediction_array = [prediction]
             else:
@@ -91,13 +94,16 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                                                                                                q_split, FMEEnable, FastME)
                 residual_file.write(res_code)
                 bit_sum += len(res_code)
+                print(bit_sum)
                 # write split indicators first, then vectors
                 code, bit_count = entropy_encode.entropy_encode_vec(differential_encode.differential_encode(split))
                 diff_file.write(code)
                 bit_sum += bit_count
+                print(bit_count)
                 code, bit_count = entropy_encode.entropy_encode_vec(differential_encode.differential_encode(vec))
                 diff_file.write(code)
                 bit_sum += bit_count
+                print(bit_count)
                 res = blocking.deblock_frame(block_itran)
                 prediction = prediction_decode.decode_residual_ME_VBS(prediction_array, res, vec, split, w, h, i,
                                                                       FMEEnable)
