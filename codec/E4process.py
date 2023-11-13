@@ -131,11 +131,11 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, num_frames=None):
     frame_block_array = blocking.block_raw(y_only_bytes, w, h, i, num_frames)
     # files to write
     residual_file = open(filepath[:-4] + '_res', 'w')
-    diff_file = open(filepath[:-4] + '_diff', 'w')
+    # diff_file = open(filepath[:-4] + '_diff', 'w')
     # config is written to the first line of diff file
     line, bits = entropy_encode.entropy_encode_setting(w, h, i, qp, period)
-    diff_file.write(line)
-    diff_file.write("\n")
+    # diff_file.write(line)
+    # diff_file.write("\n")
     bit_sum = 0
     bit_count_arr = []
     PSNR_arr = []
@@ -152,7 +152,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, num_frames=None):
             residual_file.write(code)
             bit_sum += bit_count
             code, bit_count = entropy_encode.entropy_encode_vec(differential_encode.differential_encode(vec))
-            diff_file.write(code)
+            # diff_file.write(code)
             bit_sum += bit_count
             res = blocking.deblock_frame(res, w, h)
             prediction = blocking.deblock_frame(prediction, w, h)
@@ -164,7 +164,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, num_frames=None):
             residual_file.write(code)
             bit_sum += bit_count
             code, bit_count = entropy_encode.entropy_encode_vec(differential_encode.differential_encode(vec))
-            diff_file.write(code)
+            # diff_file.write(code)
             bit_sum += bit_count
             # decode start
             dequan = quantization_decode.dequantization_frame(quan, q)
@@ -178,7 +178,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, num_frames=None):
         PSNR_arr.append(calculate_psnr(blocking.deblock_frame(frame_block_array[x], w, h), prediction))
 
     residual_file.close()
-    diff_file.close()
+    # diff_file.close()
     # print(bit_sum)
     return bit_count_arr, PSNR_arr
 
