@@ -1,0 +1,39 @@
+[Default_test]
+FMEEnable = False
+FastME = False
+nRefFrames = 1
+VBSEnable = False
+
+[MFR_test]
+FMEEnable = False
+FastME = False
+nRefFrames = 4
+VBSEnable = False
+
+[VBSEnable_only_test]
+FMEEnable = False
+FastME = False
+nRefFrames = 1
+VBSEnable = True
+j = 4
+lambda_coefficient = 1.2
+
+[FMEEnable_only_test]
+FMEEnable = True
+FastME = False
+nRefFrames = 1
+VBSEnable = False
+
+[FastMEEnable_only_test]
+FMEEnable = False
+FastME = True
+nRefFrames = 1
+VBSEnable = False
+
+[AllEnable_test]
+FMEEnable = True
+FastME = True
+nRefFrames = 4
+VBSEnable = True
+j = 4
+lambda_coefficient = 1.2
