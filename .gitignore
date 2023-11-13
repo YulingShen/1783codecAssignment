@@ -1,0 +1,5 @@
+result/*
+codec/__pycache__/*
+codec/decoder/__pycache__/*
+codec/encoder/__pycache__/*
+utils/__pycache__/
