@@ -97,7 +97,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                                                                                                frame_block_array[x], w,
                                                                                                h, n, r, lambda_val, q,
                                                                                                q_split, FMEEnable, FastME)
-                print('test', len(frame_block_array[x]), len(frame_block_array[x][0]))
+                # print('test', len(frame_block_array[x]), len(frame_block_array[x][0]))
                 residual_file.write(res_code)
                 bit_sum += len(res_code)
                 print(bit_sum)
