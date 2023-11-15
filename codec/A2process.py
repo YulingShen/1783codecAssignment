@@ -54,7 +54,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 res = blocking.deblock_frame(itran, w, h)
                 prediction = prediction_decode.decode_residual_ME(prediction_array, res, vec, w, h, i, FMEEnable)
                 prediction_array.insert(0, prediction)
-                if len(prediction_array) == nRefFrames:
+                if len(prediction_array) >= nRefFrames:
                     prediction_array = prediction_array[:nRefFrames]
             bit_count_arr.append(bit_sum)
     else:
