@@ -26,7 +26,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
     prediction_to_file = []
     if not VBSEnable:
         for x in range(num_frames):
-            print('encode fame: ' + str(x))
+            # print('encode fame: ' + str(x))
             bit_sum = 0
             if x % period == 0:
                 res, prediction, vec, quan_frame = prediction_encode.intra_residual(frame_block_array[x], n, q)
@@ -66,7 +66,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
         else:
             q_split = quantization.generate_q(int(i / 2), qp)
         for x in range(num_frames):
-            print('encode fame: ' + str(x))
+            # print('encode fame: ' + str(x))
             bit_sum = 0
             # here the transform and quantization are done within the prediction part
             # as it needs these information to decide if sub blocks takes less r-d cost
@@ -75,16 +75,16 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                                                                                         lambda_val, q, q_split)
                 residual_file.write(res_code)
                 bit_sum += len(res_code)
-                print(bit_sum)
+                # print(bit_sum)
                 # write split indicators first, then vectors
                 code, bit_count = entropy_encode.entropy_encode_vec(differential_encode.differential_encode(split))
                 diff_file.write(code)
                 bit_sum += bit_count
-                print(bit_count)
+                # print(bit_count)
                 code, bit_count = entropy_encode.entropy_encode_vec(differential_encode.differential_encode(vec))
                 diff_file.write(code)
                 bit_sum += bit_count
-                print(bit_count)
+                # print(bit_count)
                 prediction = blocking.deblock_frame(prediction, w, h)
                 prediction_array = [prediction]
             else:
@@ -94,16 +94,16 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                                                                                                q_split, FMEEnable, FastME)
                 residual_file.write(res_code)
                 bit_sum += len(res_code)
-                print(bit_sum)
+                # print(bit_sum)
                 # write split indicators first, then vectors
                 code, bit_count = entropy_encode.entropy_encode_vec(differential_encode.differential_encode(split))
                 diff_file.write(code)
                 bit_sum += bit_count
-                print(bit_count)
+                # print(bit_count)
                 code, bit_count = entropy_encode.entropy_encode_vec(differential_encode.differential_encode(vec))
                 diff_file.write(code)
                 bit_sum += bit_count
-                print(bit_count)
+                # print(bit_count)
                 res = blocking.deblock_frame(block_itran)
                 prediction = prediction_decode.decode_residual_ME_VBS(prediction_array, res, vec, split, w, h, i,
                                                                       FMEEnable)

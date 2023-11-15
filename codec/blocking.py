@@ -49,7 +49,7 @@ def block_raw(y_only_arr, w, h, i, num_frames=None, dtype=np.uint8):
         num_frames = int(len(y_only_arr) / num_bytes)
     frames = []
     for x in range(num_frames):
-        print('read frame : ' + str(x))
+        # print('read frame : ' + str(x))
         frame = np.full((h_count, w_count, i, i), 128, dtype=dtype)
         frame_bytes = y_only_arr[x * num_bytes: x * num_bytes + num_bytes]
         for n in range(num_pixel):
@@ -83,7 +83,7 @@ def deblock(frame_block_arr, w=None, h=None):
     frames = []
     num_frames = len(frame_block_arr)
     for x in range(num_frames):
-        print('deblock frame : ' + str(x))
+        # print('deblock frame : ' + str(x))
         blocked_frame = frame_block_arr[x]
         frame = np.zeros((h_count * block_size, w_count * block_size), dtype=np.uint8)
         for i in range(h):

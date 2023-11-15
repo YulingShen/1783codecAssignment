@@ -4,7 +4,7 @@ n = 3
 i = 16
 
 [QP]
-QP = 1
+QP = 4
 
 [I_Frame]
 period = 8
