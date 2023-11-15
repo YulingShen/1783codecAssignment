@@ -26,7 +26,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
     prediction_to_file = []
     if not VBSEnable:
         for x in range(num_frames):
-            print('encode fame: ' + str(x))
+            print('encode frame: ' + str(x))
             bit_sum = 0
             if x % period == 0:
                 res, prediction, vec, quan_frame = prediction_encode.intra_residual(frame_block_array[x], n, q)
@@ -55,7 +55,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 res = blocking.deblock_frame(itran, w, h)
                 prediction = prediction_decode.decode_residual_ME(prediction_array, res, vec, w, h, i, FMEEnable)
                 prediction_array.insert(0, prediction)
-                if len(prediction_array) == nRefFrames:
+                if len(prediction_array) > nRefFrames:
                     prediction_array = prediction_array[:nRefFrames]
             bit_count_arr.append(bit_sum)
             prediction_to_file.append(prediction)
@@ -66,11 +66,14 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
         else:
             q_split = quantization.generate_q(int(i / 2), qp)
         for x in range(num_frames):
-            print('encode fame: ' + str(x))
+            print('encode frame: ' + str(x))
             bit_sum = 0
             # here the transform and quantization are done within the prediction part
             # as it needs these information to decide if sub blocks takes less r-d cost
             if x % period == 0:
+                #i frame
+                #infra mode
+
                 prediction, vec, split, res_code = prediction_encode.intra_residual_VBS(frame_block_array[x], n,
                                                                                         lambda_val, q, q_split)
                 residual_file.write(res_code)
@@ -88,10 +91,13 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 prediction = blocking.deblock_frame(prediction, w, h)
                 prediction_array = [prediction]
             else:
+                #p-frame
+                #vec 
                 block_itran, vec, split, res_code = prediction_encode.generate_residual_ME_VBS(prediction_array,
                                                                                                frame_block_array[x], w,
                                                                                                h, n, r, lambda_val, q,
                                                                                                q_split, FMEEnable, FastME)
+                print('test', len(frame_block_array[x]), len(frame_block_array[x][0]))
                 residual_file.write(res_code)
                 bit_sum += len(res_code)
                 print(bit_sum)
@@ -108,7 +114,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 prediction = prediction_decode.decode_residual_ME_VBS(prediction_array, res, vec, split, w, h, i,
                                                                       FMEEnable)
                 prediction_array.insert(0, prediction)
-                if len(prediction_array) == nRefFrames:
+                if len(prediction_array) > nRefFrames:
                     prediction_array = prediction_array[:nRefFrames]
             bit_count_arr.append(bit_sum)
             prediction_to_file.append(prediction)
