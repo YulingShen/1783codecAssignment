@@ -21,4 +21,4 @@ if __name__ == '__main__':
     FMEEnable = config_dict['FMEEnable']
     FastME = config_dict['FastME']
     A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME, frame)
-    # A2process.decode_complete(filepath)
+    A2process.decode_complete(filepath)
