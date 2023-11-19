@@ -10,9 +10,10 @@ def read_raw_byte_array(filepath):
     return arr
 
 
-def y_only_byte_frame_array(y_only_arr, w, h):
+def y_only_byte_frame_array(y_only_arr, w, h, num_frames = None):
     num_pixel = w * h
-    num_frames = int(len(y_only_arr) / num_pixel)
+    if num_frames is None or num_frames > int(len(y_only_arr) / num_pixel):
+        num_frames = int(len(y_only_arr) / num_pixel)
     frames = []
     for x in range(num_frames):
         print("read frame: " + str(x))

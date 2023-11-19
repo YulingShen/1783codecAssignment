@@ -4,7 +4,7 @@ n = 3
 i = 16
 
 [QP]
-QP = 1
+QP = 10
 
 [I_Frame]
 period = 8
@@ -20,7 +20,7 @@ h = 288
 nRefFrames = 4
 
 [VBSEnable]
-VBSEnable = False
+VBSEnable = True
 j = 4
 lambda_coefficient = 2.5
 
