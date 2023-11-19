@@ -36,6 +36,7 @@ def generate_residual_ME(prediction_array, frame_block, w, h, n, r, FMEEnable, F
     block_size = len(frame_block[0][0])
     n_h = len(frame_block)
     n_w = len(frame_block[0])
+    # print("n_h")
     vector_array = []
     block_residual = np.zeros((n_h, n_w, block_size, block_size), dtype=np.int16)
     for i in range(n_h):
@@ -103,7 +104,6 @@ def generate_residual_ME_VBS(prediction_array, frame_block, w, h, n, r, lambda_v
             code, bits_mode = entropy_encode.exp_golomb(0 - prev_split)
             bits_non_split += bits_mode
             r_d_score_non_split = evaluation.calculate_rdo(ssd, lambda_val, bits_non_split)
-
             # split
             vec_arr_split = []
             code_str_split = ''

@@ -88,8 +88,6 @@ def generate_RD_plots():
     psnr_array = []
     split_rate_array = []
     bits_array = []
-    n_block_w = (w - 1) // i + 1
-    n_block_h = (h - 1) // i + 1
     RD_plots_map = {}
     PSNR_arr_map = {}
     for section in config.sections():
@@ -99,6 +97,8 @@ def generate_RD_plots():
             VBSEnable = config[section]["VBSEnable"] == "True"
             FMEEnable = config[section]["FMEEnable"] == "True"
             FastME = config[section]["FastME"] == "True"
+            n_block_w = (w - 1) // i + 1
+            n_block_h = (h - 1) // i + 1
             lambda_coefficient = None
             if "lambda_coefficient" in config[section]:
                 lambda_coefficient = float(config[section]['lambda_coefficient'])
@@ -114,23 +114,8 @@ def generate_RD_plots():
                 each_psnr = evaluation.calculate_psnr(origin_array[num], recon_array[num])
                 psnr.append(each_psnr)
             psnr_array.append(psnr)
-            # split_rate = []
-            # with open(filepath[:-4] + '_diff', 'r') as vec_file:
-            #     setting = vec_file.readline()
-            #     vec_code = vec_file.read()
             frame_count = 0
-            # while len(vec_code) > 0:
-            #     split_diff, vec_code = entropy_decode.decode_split_one_frame(vec_code, n_block_h * n_block_w)
-            #     split_array = differential_decode.differential_decode(split_diff)
-            #     len_array = n_block_h * n_block_w + 3 * np.sum(split_array)
-            #     if frame_count % period == 0:
-            #         vec_diff, vec_code = entropy_decode.decode_vec_one_frame(vec_code, len_array, False)
-            #     else:
-            #         vec_diff, vec_code = entropy_decode.decode_vec_one_frame(vec_code, len_array, True)
-            #     frame_count += 1
-            #     split_rate.append(np.sum(split_array) / len(split_array))
-            # split_rate_array.append(split_rate)
-            print(section, qp, elapsed)
+            print(section, qp, round(elapsed, 2))
         PSNR_arr_map[section] = psnr_array
         RD_plots_map[section] = bits_array
         bits_array = []
@@ -172,7 +157,7 @@ def test_Nframe():
             recon_array, bits = A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable,
                                                     lambda_coefficient, FMEEnable, FastME, frame)
             bits_array.append(bits)
-            reader.write_frame_array_to_file(recon_array, './files/foreman_cif_y_recon' + str(qp) + '_' + str(lambda_coefficient) + '.yuv')
+            reader.write_frame_array_to_file(recon_array, './files/synthetic_y' + str(qp) + '_' + str(lambda_coefficient) + '.yuv')
             psnr = []
             distortion = []
             for num in range(frame):
@@ -182,7 +167,9 @@ def test_Nframe():
                 distortion.append(each_distortion)
             psnr_array.append(psnr)
             distortion_array.append(distortion)
-        print(distortion_array)
+        print(psnr_array)
+        print(bits_array)
+
     np.save('./files/psnr_arr.npy', psnr_array)
     np.save('./files/split_arr.npy', split_rate_array)
     np.save('./files/bits_arr.npy', np.array(bits_array))

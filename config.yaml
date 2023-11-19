@@ -4,7 +4,7 @@ n = 3
 i = 16
 
 [QP]
-QP = 4
+QP = 1
 
 [I_Frame]
 period = 8
@@ -17,7 +17,7 @@ w = 352
 h = 288
 
 [nRefFrames]
-nRefFrames = 1
+nRefFrames = 4
 
 [VBSEnable]
 VBSEnable = True
