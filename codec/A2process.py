@@ -114,7 +114,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 prediction = prediction_decode.decode_residual_ME_VBS(prediction_array, res, vec, split, w, h, i,
                                                                       FMEEnable)
                 prediction_array.insert(0, prediction)
-                if len(prediction_array) > nRefFrames:
+                if len(prediction_array) == nRefFrames:
                     prediction_array = prediction_array[:nRefFrames]
             bit_count_arr.append(bit_sum)
             prediction_to_file.append(prediction)
