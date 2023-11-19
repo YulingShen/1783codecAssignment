@@ -199,39 +199,55 @@ if __name__ == '__main__':
     w, h, i, qp, period, VBSEnable, FMEEnable = entropy_decode.decode_setting(setting)
 
     origin_array = reader.y_only_byte_frame_array(reader.read_raw_byte_array(filepath), w, h)
-    psnr_array = []
-    split_rate_array = []
-    vis_array = []
-    bits_array = []
+    splits = []
+    vecs = []
     n_block_w = (w - 1) // i + 1
     n_block_h = (h - 1) // i + 1
 
     frame_count = 0
-    while len(vec_code) > 0:
-        split_diff, vec_code = entropy_decode.decode_split_one_frame(vec_code, n_block_h * n_block_w)
-        split_array = differential_decode.differential_decode(split_diff)
-        len_array = n_block_h * n_block_w + 3 * np.sum(split_array)
-        if frame_count % period == 0:
-            vec_diff, vec_code = entropy_decode.decode_vec_one_frame(vec_code, len_array, False)
-        else:
-            vec_diff, vec_code = entropy_decode.decode_vec_one_frame(vec_code, len_array, True)
-        frame_count += 1
-        vis_array.append(split_array)
+    if not VBSEnable:
+        while len(vec_code) > 0:
+            if frame_count % period == 0:
+                diff_array, vec_code = entropy_decode.decode_vec_one_frame(vec_code, n_block_h * n_block_w, False)
+                mode_array = differential_decode.differential_decode(diff_array)
+                vecs.append(mode_array)
+            else:
+                diff_array, vec_code = entropy_decode.decode_vec_one_frame(vec_code, n_block_h * n_block_w, True)
+                vec_array = differential_decode.differential_decode(diff_array)
+                vecs.append(vec_array)
+            frame_count += 1
+    else:
+        while len(vec_code) > 0:
+            split_diff, vec_code = entropy_decode.decode_split_one_frame(vec_code, n_block_h * n_block_w)
+            split_array = differential_decode.differential_decode(split_diff)
+            len_array = n_block_h * n_block_w + 3 * np.sum(split_array)
+            if frame_count % period == 0:
+                vec_diff, vec_code = entropy_decode.decode_vec_one_frame(vec_code, len_array, False)
+                mode_array = differential_decode.differential_decode(vec_diff)
+                vecs.append(mode_array)
+            else:
+                vec_diff, vec_code = entropy_decode.decode_vec_one_frame(vec_code, len_array, True)
+                vec_array = differential_decode.differential_decode(vec_diff)
+                vecs.append(vec_array)
+            frame_count += 1
+            splits.append(split_array)
 
-    for num in range(len(origin_array)):
+    for num in range(frame_count):
         current_frame = origin_array[num]
-        split_decision = vis_array[num]
-        border_frame = np.copy(current_frame)
-        if num == 0:
-            mode_frame = overlay_mode_blocks_on_gray_image(current_frame, split_decision, mode_array[num], i)
-            arrow_frame = process_frame_for_arrows(current_frame, split_decision, vec_array[num], i)
-            color_frame = overlay_color_blocks_on_gray_image(current_frame, split_decision, vec_array[num], i)
-        for row in range(n_block_h):
-            for col in range(n_block_w):
-                block_split = split_decision[row * n_block_w + col]
-                border_frame = draw_border(border_frame, row, col, i, block_split == 1)
-
-        reader.write_frame_array_to_file(border_frame, './files/vbs_yuv/border_frame' + str(num) + '.yuv')
-        reader.write_frame_array_to_file(arrow_frame, './files/vbs_yuv/arrow_frame' + str(num) + '.yuv')
-        reader.write_frame_array_to_file(color_frame, './files/vbs_yuv/color_frame' + str(num) + '.yuv')
-        reader.write_frame_array_to_file(mode_frame, './files/vbs_yuv/mode_frame' + str(num) + '.yuv')
+        split_array = np.zeros(n_block_h * n_block_w)
+        if VBSEnable:
+            split_array = splits[num]
+            border_frame = np.copy(current_frame)
+            for row in range(n_block_h):
+                for col in range(n_block_w):
+                    block_split = split_array[row * n_block_w + col]
+                    border_frame = draw_border(border_frame, row, col, i, block_split == 1)
+            reader.write_frame_array_to_file(border_frame, './files/visualize/border_frame_' + str(num) + '.yuv')
+        if num % period == 0:
+            mode_frame = overlay_mode_blocks_on_gray_image(current_frame, split_array, vecs[num], i)
+            reader.write_frame_array_to_file(mode_frame, './files/visualize/mode_frame_' + str(num) + '.yuv')
+        else:
+            arrow_frame = process_frame_for_arrows(current_frame, split_array, vecs[num], i)
+            color_frame = overlay_color_blocks_on_gray_image(current_frame, split_array, vecs[num], i)
+            reader.write_frame_array_to_file(arrow_frame, './files/visualize/arrow_frame_' + str(num) + '.yuv')
+            reader.write_frame_array_to_file(color_frame, './files/visualize/ref_frame_' + str(num) + '.yuv')
