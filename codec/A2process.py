@@ -5,8 +5,8 @@ from codec.decoder import prediction_decode, transform_decode, quantization_deco
 import numpy as np
 
 
-# final process controller for E4 encoding
-def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME, num_frames=None):
+def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME,
+                    num_frames=None):
     y_only_bytes = reader.read_raw_byte_array(filepath)
     frame_block_array = blocking.block_raw(y_only_bytes, w, h, i, num_frames)
     # files to write
@@ -39,7 +39,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 prediction_array = [prediction]
             else:
                 res, vec = prediction_encode.generate_residual_ME(prediction_array, frame_block_array[x], w, h, n,
-                                                                       r, FMEEnable, FastME)
+                                                                  r, FMEEnable, FastME)
                 tran = transform_encode.transform_frame(res)
                 quan = quantization_encode.quantization_frame(tran, q)
                 code, bit_count = entropy_encode.entropy_encode_quan_frame_block(quan)
@@ -86,7 +86,8 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 block_itran, vec, split, res_code = prediction_encode.generate_residual_ME_VBS(prediction_array,
                                                                                                frame_block_array[x], w,
                                                                                                h, n, r, lambda_val, q,
-                                                                                               q_split, FMEEnable, FastME)
+                                                                                               q_split, FMEEnable,
+                                                                                               FastME)
                 residual_file.write(res_code)
                 bit_sum += len(res_code)
                 # write split indicators first, then vectors
@@ -107,7 +108,6 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
     diff_file.close()
 
 
-# file process controller of E4 decoding
 def decode_complete(filepath):
     if filepath[-4:] == '.yuv':
         filepath = filepath[:-4]
@@ -169,7 +169,8 @@ def decode_complete(filepath):
             else:
                 vec_diff, vec_code = entropy_decode.decode_vec_one_frame(vec_code, len_array, True)
                 vec_array = differential_decode.differential_decode(vec_diff)
-                recon = prediction_decode.decode_residual_ME_VBS(recon_array, res, vec_array, split_array, w, h, i, FMEEnable)
+                recon = prediction_decode.decode_residual_ME_VBS(recon_array, res, vec_array, split_array, w, h, i,
+                                                                 FMEEnable)
                 recon_array.insert(0, recon)
                 # here use the upper limit of nRefFrame for easier coding purpose
                 if len(recon_array) == 4:
