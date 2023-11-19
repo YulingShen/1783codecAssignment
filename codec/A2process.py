@@ -25,7 +25,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
     prediction_array = []
     if not VBSEnable:
         for x in range(num_frames):
-            print('encode fame: ' + str(x))
+            print('encode frame: ' + str(x))
             bit_sum = 0
             if x % period == 0:
                 res, prediction, vec, quan_frame = prediction_encode.intra_residual(frame_block_array[x], n, q)
@@ -64,7 +64,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
         else:
             q_split = quantization.generate_q(int(i / 2), qp)
         for x in range(num_frames):
-            print('encode fame: ' + str(x))
+            print('encode frame: ' + str(x))
             bit_sum = 0
             # here the transform and quantization are done within the prediction part
             # as it needs these information to decide if sub blocks takes less r-d cost
@@ -100,7 +100,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 prediction = prediction_decode.decode_residual_ME_VBS(prediction_array, res, vec, split, w, h, i,
                                                                       FMEEnable)
                 prediction_array.insert(0, prediction)
-                if len(prediction_array) == nRefFrames:
+                if len(prediction_array) >= nRefFrames:
                     prediction_array = prediction_array[:nRefFrames]
             bit_count_arr.append(bit_sum)
     residual_file.close()
