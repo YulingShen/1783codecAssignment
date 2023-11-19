@@ -20,7 +20,7 @@ h = 288
 nRefFrames = 4
 
 [VBSEnable]
-VBSEnable = True
+VBSEnable = False
 j = 4
 lambda_coefficient = 2.5
 
@@ -28,4 +28,4 @@ lambda_coefficient = 2.5
 FMEEnable = False
 
 [FastME]
-FastME = True
+FastME = False

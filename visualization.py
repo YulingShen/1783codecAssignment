@@ -208,11 +208,8 @@ if __name__ == '__main__':
         if num % period == 0:
             mode_frame = overlay_mode_blocks_on_gray_image(current_frame, split_array, vecs[num], i)
             cv2.imwrite('./files/visualize/mode_frame_' + str(num) + '.jpg', mode_frame)
-            # reader.write_frame_array_to_file(mode_frame, './files/visualize/mode_frame_' + str(num) + '.yuv')
         else:
             arrow_frame = process_frame_for_arrows(current_frame, split_array, vecs[num], i)
             color_frame = overlay_color_blocks_on_gray_image(current_frame, split_array, vecs[num], i)
             cv2.imwrite('./files/visualize/arrow_frame_' + str(num) + '.jpg', arrow_frame)
             cv2.imwrite('./files/visualize/ref_frame_' + str(num) + '.jpg', color_frame)
-            # reader.write_frame_array_to_file(arrow_frame, './files/visualize/arrow_frame_' + str(num) + '.yuv')
-            # reader.write_frame_array_to_file(color_frame, './files/visualize/ref_frame_' + str(num) + '.yuv')
