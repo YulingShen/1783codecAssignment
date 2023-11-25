@@ -204,12 +204,12 @@ if __name__ == '__main__':
                 for col in range(n_block_w):
                     block_split = split_array[row * n_block_w + col]
                     border_frame = draw_border(border_frame, row, col, i, block_split == 1)
-            cv2.imwrite('./files/visualize/border_frame_' + str(num) + '.jpg', border_frame)
+            cv2.imwrite(filepath[:-4] + '_border_frame_' + str(num) + '.jpg', border_frame)
         if num % period == 0:
             mode_frame = overlay_mode_blocks_on_gray_image(current_frame, split_array, vecs[num], i)
-            cv2.imwrite('./files/visualize/mode_frame_' + str(num) + '.jpg', mode_frame)
+            cv2.imwrite(filepath[:-4] + '_mode_frame_' + str(num) + '.jpg', mode_frame)
         else:
             arrow_frame = process_frame_for_arrows(current_frame, split_array, vecs[num], i)
             color_frame = overlay_color_blocks_on_gray_image(current_frame, split_array, vecs[num], i)
-            cv2.imwrite('./files/visualize/arrow_frame_' + str(num) + '.jpg', arrow_frame)
-            cv2.imwrite('./files/visualize/ref_frame_' + str(num) + '.jpg', color_frame)
+            cv2.imwrite(filepath[:-4] + '_arrow_frame_' + str(num) + '.jpg', arrow_frame)
+            cv2.imwrite(filepath[:-4] + '_ref_frame_' + str(num) + '.jpg', color_frame)
