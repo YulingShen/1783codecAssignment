@@ -4,7 +4,7 @@ n = 3
 i = 16
 
 [QP]
-QP = 5
+QP = 6
 
 [I_Frame]
 period = 5
@@ -31,6 +31,7 @@ FMEEnable = True
 FastME = True
 
 [RCFlag]
-RCFlag = 1
+RCFlag = 2
 targetBR = 2,737,152
 FPS = 30
+intraLine = 1.5
