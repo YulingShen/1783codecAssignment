@@ -57,7 +57,7 @@ def encode_complete(filepath, config_dict, table_dict):
     elif RCFlag == 1:
         encode_RC_1(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME,
                     RCFlag, targetBR, fps, bits_tables, frame)
-    elif RCFlag == 2:
+    elif RCFlag in [2, 3]:
         encode_RC_2(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME,
                     RCFlag, targetBR, fps, bits_tables, intraLine, frame)
 
@@ -194,8 +194,8 @@ def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
         print('encode frame: ' + str(x))
         bit_sum = 0
         bit_by_row = []
-        vec_array = []
-        split_array = []
+        vec_each_row = []
+        split_each_row = []
         if x % period == 0:
             prediction = np.zeros((n_rows_frame, n_cols_frame, block_size, block_size), dtype=np.uint8)
             for i in range(n_rows_frame):
@@ -212,8 +212,8 @@ def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
                     bit_row += bit_count
                 code, bit_count = entropy_encode.entropy_encode_vec_alter(differential_encode.differential_encode(vec))
                 bit_row += bit_count
-                vec_array += vec
-                split_array += split
+                vec_each_row.append(vec)
+                split_each_row.append(split)
                 # update budget
                 bit_sum += bit_row
                 bit_by_row.append(bit_row)
@@ -221,7 +221,8 @@ def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
             prediction_array = [prediction]
         else:
             block_itran = np.zeros((n_rows_frame, n_cols_frame, block_size, block_size), dtype=np.int16)
-
+            vec_array = []
+            split_array = []
             for i in range(n_rows_frame):
                 block_itran, vec, split, res_code = prediction_encode_row.generate_residual_ME_row(prediction_array,
                                                                                                    frame_block_array[x],
@@ -241,6 +242,8 @@ def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
                     bit_row += bit_count
                 code, bit_count = entropy_encode.entropy_encode_vec_alter(differential_encode.differential_encode(vec))
                 bit_row += bit_count
+                vec_each_row.append(vec)
+                split_each_row.append(split)
                 # update budget
                 bit_sum += bit_row
                 bit_by_row.append(bit_row)
@@ -255,8 +258,8 @@ def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
             if len(prediction_array) >= nRefFrames:
                 prediction_array = prediction_array[:nRefFrames]
         bit_count_arr.append(bit_sum)
-        vec_arr_first.append(vec_array)
-        split_arr_first.append(split_array)
+        vec_arr_first.append(vec_each_row)
+        split_arr_first.append(split_each_row)
         # bit_by_row_arr.append(bit_by_row)
         # process bit results
         if bit_sum / n_rows_frame > intraLine * bits_tables['inter'][qp] or x % period == 0:
@@ -293,6 +296,8 @@ def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
         bits_tables['intra'][qp_val] = int(bits_tables['intra'][qp_val] * I_scale)
         bits_tables['inter'][qp_val] = int(bits_tables['inter'][qp_val] * P_scale)
 
+    print(intra_profile)
+
     # second run
     print('starting second pass')
     bit_count_arr = []
@@ -302,6 +307,8 @@ def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
         bit_sum = 0
         budget_curr_frame = bits_budget_frame
         budget_percent_remain = sum(budget_profile[x])
+        vec_row_profile = vec_arr_first[x]
+        split_row_profile = split_arr_first[x]
         if intra_profile[x]:
             # intra indicator in diff file first (1)
             code, bit_count = entropy_encode.exp_golomb(1)
@@ -314,9 +321,15 @@ def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
                 lambda_val = evaluation.get_lambda(qp, lambda_coefficient)
                 q = quantization.generate_q(block_size, qp)
                 q_split = quantization.generate_q(int(block_size / 2), max(qp - 1, 0))
-                prediction, vec, split, res_code = prediction_encode_row.intra_residual_row(frame_block_array[x], n,
+                if RCFlag == 2:
+                    prediction, vec, split, res_code = prediction_encode_row.intra_residual_row(frame_block_array[x], n,
                                                                                             lambda_val, q, q_split,
                                                                                             VBSEnable, prediction, i)
+                elif RCFlag == 3:
+                    prediction, vec, split, res_code = prediction_encode_row.intra_residual_row_leverage(frame_block_array[x], n,
+                                                                                                q, q_split,
+                                                                                                prediction,
+                                                                                                i, split_row_profile[i])
                 residual_file.write(res_code)
                 bit_row = len(res_code)
                 # diff file will be qp, split (if needed), mode or vec
@@ -351,7 +364,8 @@ def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
                 lambda_val = evaluation.get_lambda(qp, lambda_coefficient)
                 q = quantization.generate_q(block_size, qp)
                 q_split = quantization.generate_q(int(block_size / 2), max(qp - 1, 0))
-                block_itran, vec, split, res_code = prediction_encode_row.generate_residual_ME_row(prediction_array,
+                if RCFlag == 2:
+                    block_itran, vec, split, res_code = prediction_encode_row.generate_residual_ME_row(prediction_array,
                                                                                                    frame_block_array[x],
                                                                                                    w,
                                                                                                    h, n, r, lambda_val,
@@ -359,6 +373,15 @@ def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
                                                                                                    FMEEnable,
                                                                                                    FastME, VBSEnable,
                                                                                                    block_itran, i)
+                elif RCFlag == 3:
+                    block_itran, vec, split, res_code = prediction_encode_row.generate_residual_ME_row_leverage(prediction_array,
+                                                                                                       frame_block_array[
+                                                                                                           x],
+                                                                                                       w,
+                                                                                                       h, n, r,
+                                                                                                       q, q_split,
+                                                                                                       FMEEnable,
+                                                                                                       block_itran, i, split_row_profile[i], vec_row_profile[i])
                 residual_file.write(res_code)
                 bit_row = len(res_code)
                 # diff file will be qp, split (if needed), mode or vec
@@ -404,7 +427,7 @@ def decode_complete(filepath):
         return
     elif RCFlag == 1:
         decode_RC_1(filepath)
-    elif RCFlag == 2:
+    elif RCFlag in [2, 3]:
         decode_RC_2(filepath)
 
 

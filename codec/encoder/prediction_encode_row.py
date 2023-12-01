@@ -131,10 +131,10 @@ def generate_residual_ME_row_leverage(prediction_array, frame_block, w, h, n, r,
     vector_counter = 0
     for j in range(n_w):
         split_mode = split_array[j]
+        i_h = i * block_size
+        i_w = j * block_size
         if split_mode == 0:
             # non split
-            i_h = i * block_size
-            i_w = j * block_size
             if not FMEEnable:
                 min_MAE, block_origin, vec_non_split = search_motion_non_fraction(w, h, i_h, i_w, block_size, r,
                                                                                   prediction_array,
@@ -198,9 +198,9 @@ def generate_residual_ME_row_leverage(prediction_array, frame_block, w, h, n, r,
                     code_str_split += code_str
                     itran_split[slice_x:slice_x + half_block_size, slice_y:slice_y + half_block_size] = itran
 
-                    vector_array += vec_arr_split
-                    code_str_entropy += code_str_split
-                    block_itran[i][j] = itran_split
+            vector_array += vec_arr_split
+            code_str_entropy += code_str_split
+            block_itran[i][j] = itran_split
         # the estimated score is proportional to ssd and number of bits,
         # which is smaller for better
     return block_itran, vector_array, split_array, code_str_entropy
@@ -351,7 +351,7 @@ def intra_residual_row(frame_block, n, lambda_val, q_non_split, q_split, VBSEnab
     return pred, mode_array, split_array, entropy_encode_str
 
 
-def intra_residual_row_leverage(frame_block, n, lambda_val, q_non_split, q_split, VBSEnable, pred, i, split_array):
+def intra_residual_row_leverage(frame_block, n, q_non_split, q_split, pred, i, split_array):
     block_size = len(frame_block[0][0])
     half_block_size = int(block_size / 2)
     n_w = len(frame_block[0])
@@ -362,9 +362,9 @@ def intra_residual_row_leverage(frame_block, n, lambda_val, q_non_split, q_split
     blank_half = np.full((half_block_size, half_block_size), 128, dtype=np.int16)
     for j in range(n_w):
         split_mode = split_array[j]
+        curr_block = frame_block[i][j]
         if split_mode == 0:
             # non split
-            curr_block = frame_block[i][j]
             # vertical
             prediction_block_ver = blank
             if i != 0:
@@ -460,9 +460,9 @@ def intra_residual_row_leverage(frame_block, n, lambda_val, q_non_split, q_split
                     prediction_block_split[slice_x:slice_x + half_block_size, slice_y:slice_y + half_block_size] = \
                         np.add(prediction_sub_block, itran_split).clip(0, 255).astype(np.uint8)
 
-                mode_array += mode_array_split
-                pred[i][j] = prediction_block_split
-                entropy_encode_str += code_str_split
+            mode_array += mode_array_split
+            pred[i][j] = prediction_block_split
+            entropy_encode_str += code_str_split
     # do encoding and bit counting
 
     return pred, mode_array, split_array, entropy_encode_str
