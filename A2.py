@@ -2,7 +2,7 @@ from codec import A2process
 from utils import reader
 
 if __name__ == '__main__':
-    filepath = './files/foreman_cif_y.yuv'
+    filepath = './files/CIF_y.yuv'
     configpath = './config.yaml'
     config_dict = reader.load_config(configpath)
     w = config_dict['w']
@@ -20,5 +20,6 @@ if __name__ == '__main__':
     lambda_coefficient = config_dict['lambda_coefficient']
     FMEEnable = config_dict['FMEEnable']
     FastME = config_dict['FastME']
-    A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME, frame)
+    RCFlag = config_dict['RCFlag']
+    A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME, RCFlag, frame)
     A2process.decode_complete(filepath)

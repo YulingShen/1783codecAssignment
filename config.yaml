@@ -1,13 +1,13 @@
 [RNI_setting]
-r = 4
+r = 16
 n = 3
 i = 16
 
 [QP]
-QP = 10
+QP = 5
 
 [I_Frame]
-period = 8
+period = 5
 
 [frame]
 frame = 10
@@ -17,15 +17,20 @@ w = 352
 h = 288
 
 [nRefFrames]
-nRefFrames = 4
+nRefFrames = 1
 
 [VBSEnable]
-VBSEnable = False
+VBSEnable = True
 j = 4
 lambda_coefficient = 2.5
 
 [FMEEnable]
-FMEEnable = False
+FMEEnable = True
 
 [FastME]
-FastME = False
+FastME = True
+
+[RCFlag]
+RCFlag = 1
+targetBR = 2,737,152
+FPS = 30

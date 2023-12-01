@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def entropy_encode_quan_frame_block(quan_frame_block):
     n_h = len(quan_frame_block)
     n_w = len(quan_frame_block[0])
@@ -57,6 +60,28 @@ def entropy_encode_vec(vector_array):
     return result, bit_sum
 
 
+# change order or encoding vector to each by each block instread of each dimension
+def entropy_encode_vec_alter(vector_array):
+    result = ""
+    bit_sum = 0
+    if len(vector_array.shape) == 2:
+        vec_connect = np.empty(0, dtype=np.int8)
+        for d in range(vector_array.shape[0]):
+            vec = vector_array[d]
+            vec_connect = np.append(vec_connect, vec)
+        rle = RLE(vec_connect)
+        for each in rle:
+            code, bits = exp_golomb(each)
+            result = result + code
+            bit_sum = bit_sum + bits
+    else:
+        rle = RLE(vector_array)
+        for each in rle:
+            code, bits = exp_golomb(each)
+            result = result + code
+            bit_sum = bit_sum + bits
+    return result, bit_sum
+
 def entropy_encode_single_vec(vector):
     result = ""
     bit_sum = 0
@@ -67,7 +92,7 @@ def entropy_encode_single_vec(vector):
     return result, bit_sum
 
 
-def entropy_encode_setting(w, h, i, qp, period, VBSEnable, FMEEnable):
+def entropy_encode_setting(w, h, i, qp, period, VBSEnable, FMEEnable, RCFlag):
     result = ""
     bit_sum = 0
     code, bits = exp_golomb(w)
@@ -95,6 +120,9 @@ def entropy_encode_setting(w, h, i, qp, period, VBSEnable, FMEEnable):
         code, bits = exp_golomb(1)
     else:
         code, bits = exp_golomb(0)
+    result += code
+    bit_sum += bits
+    code, bits = exp_golomb(RCFlag)
     result += code
     bit_sum += bits
     return result, bit_sum

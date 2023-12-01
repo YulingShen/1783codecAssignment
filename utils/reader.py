@@ -92,6 +92,9 @@ def load_config(configpath):
     config_dict["lambda_coefficient"] = float(config["VBSEnable"]["lambda_coefficient"])
     config_dict["FMEEnable"] = get_bool(config["FMEEnable"]["FMEEnable"])
     config_dict["FastME"] = get_bool(config["FastME"]["FastME"])
+    config_dict["RCFlag"] = int(config["RCFlag"]["RCFlag"])
+    config_dict["targetBR"] = int(config["RCFlag"]["targetBR"].replace(',', ''))
+    config_dict["fps"] = int(config["RCFlag"]["FPS"])
     # fit nRefFrames into [1, 4]
     if config_dict["nRefFrames"] < 1:
         config_dict["nRefFrames"] = 1
@@ -102,6 +105,16 @@ def load_config(configpath):
     #     config_dict["i"] = 2 ** int(config["VBSEnable"]["j"])
     return config_dict
 
+def load_RC_profile(configpath):
+    config_dict = {}
+    config = configparser.ConfigParser()
+    config.read(configpath)
+    for each in config.sections():
+        row = []
+        for val in config[each]:
+            row.append(int(config[each][val]))
+        config_dict[each] = row
+    return config_dict
 
 def res_abs(filepath):
     residual = np.fromfile(filepath, dtype=np.int16)

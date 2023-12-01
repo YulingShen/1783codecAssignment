@@ -36,6 +36,28 @@ def decode_quan_one_frame_VBS(code_str, n_w, n_h, block_len, split_array):
     return quan_frame, code_str
 
 
+def decode_quan_frame_VBS_given_row(code_str, n_w, block_len, split_array, quan_frame, i):
+    block_size = block_len * block_len
+    half_block_len = int(block_len / 2)
+    sub_block_size = half_block_len * half_block_len
+    for j in range(n_w):
+        split_mode = split_array[j]
+        if split_mode == 0:
+            val_array, code_str = get_size(code_str, block_size)
+            block = de_RLE(val_array, block_len)
+            quan_frame[i][j] = block
+        else:
+            single_block = np.zeros((block_len, block_len))
+            for k in range(4):
+                slice_x = (k // 2) * half_block_len
+                slice_y = (k % 2) * half_block_len
+                val_array, code_str = get_size(code_str, sub_block_size)
+                block = de_RLE(val_array, half_block_len)
+                single_block[slice_x:slice_x + half_block_len, slice_y:slice_y + half_block_len] = block
+            quan_frame[i][j] = single_block
+    return quan_frame, code_str
+
+
 def decode_vec_one_frame(code_str, size, mv=True):
     if mv:
         x_array, code_str = get_size(code_str, size)
@@ -49,6 +71,21 @@ def decode_vec_one_frame(code_str, size, mv=True):
         while len(k_array) < size:
             k_array.append(0)
         val_array = np.array([x_array, y_array, k_array]).T
+    else:
+        val_array, code_str = get_size(code_str, size)
+        while len(val_array) < size:
+            val_array.append(0)
+    return val_array, code_str
+
+
+def decode_vec_one_frame_alter(code_str, size, mv=True):
+    if mv:
+        vec_connect, code_str = get_size(code_str, size * 3)
+        while len(vec_connect) < size * 3:
+            vec_connect.append(0)
+        val_array = []
+        for i in range(size):
+            val_array.append(vec_connect[i * 3: i * 3 + 3])
     else:
         val_array, code_str = get_size(code_str, size)
         while len(val_array) < size:
@@ -81,7 +118,7 @@ def decode_setting(code_str):
         FMEEnable = True
     else:
         FMEEnable = False
-    return values[0], values[1], values[2], values[3], values[4], VBSEnable, FMEEnable
+    return values[0], values[1], values[2], values[3], values[4], VBSEnable, FMEEnable, values[7]
 
 
 def get_size(code_str, size):
@@ -110,6 +147,19 @@ def get_size(code_str, size):
             val_array.append(val)
     return val_array, code_str
 
+
+def get_num(code_str, size):
+    val_array = []
+    while size > 0:
+        zero_count = 0
+        while code_str[zero_count] == "0":
+            zero_count += 1
+        bit_str = code_str[: zero_count * 2 + 1]
+        code_str = code_str[zero_count * 2 + 1:]
+        val = golomb_decode(bit_str)
+        val_array.append(val)
+        size -= 1
+    return val_array, code_str
 
 def de_RLE(num_array, block_len):
     result = np.zeros((block_len, block_len))
