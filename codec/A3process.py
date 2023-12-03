@@ -1,6 +1,6 @@
 import numpy as np
 
-from codec import A2process, blocking, quantization, evaluation
+from codec import A2process, blocking, quantization, evaluation, A3process_parallel
 from codec.decoder import entropy_decode, quantization_decode, transform_decode, differential_decode, prediction_decode
 from codec.encoder import entropy_encode, prediction_encode_row, differential_encode, prediction_encode, \
     transform_encode, quantization_encode
@@ -44,6 +44,7 @@ def encode_complete(filepath, config_dict, table_dict):
     targetBR = config_dict['targetBR']
     fps = config_dict['fps']
     intraLine = config_dict['intraLine']
+    ParallelMode = config_dict['ParallelMode']
     bits_tables = {}
     if w == 352 and h == 288:
         bits_tables['intra'] = table_dict['CIF_intra']
@@ -51,9 +52,15 @@ def encode_complete(filepath, config_dict, table_dict):
     elif w == 176 and h == 144:
         bits_tables['intra'] = table_dict['QCIF_intra']
         bits_tables['inter'] = table_dict['QCIF_inter']
-    if RCFlag == 0:
+    if RCFlag == 0 and ParallelMode == 0:
         A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
-                                  FMEEnable, FastME, RCFlag, frame)
+                                  FMEEnable, FastME, frame)
+    elif ParallelMode in [1, 2]:
+        A3process_parallel.encode_parallel_1_2(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
+                                  FMEEnable, FastME, ParallelMode, frame)
+    elif ParallelMode == 3:
+        A3process_parallel.encode_parallel_3(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
+                                  FMEEnable, FastME, ParallelMode, frame)
     elif RCFlag == 1:
         encode_RC_1(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME,
                     RCFlag, targetBR, fps, bits_tables, frame)
@@ -421,10 +428,13 @@ def decode_complete(filepath):
         filepath = filepath[:-4]
     with open(filepath + '_diff', 'r') as vec_file:
         setting = vec_file.readline()
-    w, h, i, qp, period, VBSEnable, FMEEnable, RCFlag = entropy_decode.decode_setting(setting)
-    if RCFlag == 0:
+    w, h, i, qp, period, VBSEnable, FMEEnable, RCFlag, ParallelMode = entropy_decode.decode_setting(setting)
+    if RCFlag == 0 and ParallelMode == 0:
         A2process.decode_complete(filepath)
-        return
+    elif ParallelMode == 1:
+        A3process_parallel.decode_parallel_1(filepath)
+    elif ParallelMode in [2, 3]:
+        A3process_parallel.decode_parallel_2(filepath)
     elif RCFlag == 1:
         decode_RC_1(filepath)
     elif RCFlag in [2, 3]:
@@ -439,7 +449,7 @@ def decode_RC_1(filepath):
     with open(filepath + '_diff', 'r') as vec_file:
         setting = vec_file.readline()
         vec_code = vec_file.read()
-    w, h, block_size, qp, period, VBSEnable, FMEEnable, RCFlag = entropy_decode.decode_setting(setting)
+    w, h, block_size, qp, period, VBSEnable, FMEEnable, RCFlag, ParallelMode = entropy_decode.decode_setting(setting)
     video = []
     recon_array = []
     n_rows_frame = (h - 1) // block_size + 1  # n_block_h
@@ -505,7 +515,7 @@ def decode_RC_2(filepath):
     with open(filepath + '_diff', 'r') as vec_file:
         setting = vec_file.readline()
         vec_code = vec_file.read()
-    w, h, block_size, qp, period, VBSEnable, FMEEnable, RCFlag = entropy_decode.decode_setting(setting)
+    w, h, block_size, qp, period, VBSEnable, FMEEnable, RCFlag, ParallelMode = entropy_decode.decode_setting(setting)
     video = []
     recon_array = []
     n_rows_frame = (h - 1) // block_size + 1  # n_block_h

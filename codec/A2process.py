@@ -5,7 +5,7 @@ from codec.decoder import prediction_decode, transform_decode, quantization_deco
 import numpy as np
 
 
-def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME, RCFlag,
+def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME,
                     num_frames=None):
     y_only_bytes = reader.read_raw_byte_array(filepath)
     frame_block_array = blocking.block_raw(y_only_bytes, w, h, i, num_frames)
@@ -13,7 +13,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
     residual_file = open(filepath[:-4] + '_res', 'w')
     diff_file = open(filepath[:-4] + '_diff', 'w')
     # config is written to the first line of diff file
-    line, bits = entropy_encode.entropy_encode_setting(w, h, i, qp, period, VBSEnable, FMEEnable, RCFlag)
+    line, bits = entropy_encode.entropy_encode_setting(w, h, i, qp, period, VBSEnable, FMEEnable)
     diff_file.write(line)
     diff_file.write("\n")
     bit_count_arr = []
@@ -116,7 +116,7 @@ def decode_complete(filepath):
     with open(filepath + '_diff', 'r') as vec_file:
         setting = vec_file.readline()
         vec_code = vec_file.read()
-    w, h, i, qp, period, VBSEnable, FMEEnable, RCFlag = entropy_decode.decode_setting(setting)
+    w, h, i, qp, period, VBSEnable, FMEEnable, RCFlag, ParallelMode = entropy_decode.decode_setting(setting)
     q = quantization.generate_q(i, qp)
     video = []
     recon_array = []

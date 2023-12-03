@@ -62,6 +62,7 @@ def entropy_encode_vec(vector_array):
 
 # change order or encoding vector to each by each block instread of each dimension
 def entropy_encode_vec_alter(vector_array):
+    vector_array = np.array(vector_array)
     result = ""
     bit_sum = 0
     if len(vector_array.shape) == 2:
@@ -92,7 +93,7 @@ def entropy_encode_single_vec(vector):
     return result, bit_sum
 
 
-def entropy_encode_setting(w, h, i, qp, period, VBSEnable, FMEEnable, RCFlag):
+def entropy_encode_setting(w, h, i, qp, period, VBSEnable, FMEEnable, RCFlag = 0, ParallelMode = 0):
     result = ""
     bit_sum = 0
     code, bits = exp_golomb(w)
@@ -123,6 +124,9 @@ def entropy_encode_setting(w, h, i, qp, period, VBSEnable, FMEEnable, RCFlag):
     result += code
     bit_sum += bits
     code, bits = exp_golomb(RCFlag)
+    result += code
+    bit_sum += bits
+    code, bits = exp_golomb(ParallelMode)
     result += code
     bit_sum += bits
     return result, bit_sum

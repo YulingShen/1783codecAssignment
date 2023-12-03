@@ -21,5 +21,5 @@ if __name__ == '__main__':
     FMEEnable = config_dict['FMEEnable']
     FastME = config_dict['FastME']
     RCFlag = config_dict['RCFlag']
-    A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME, RCFlag, frame)
+    A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME, frame)
     A2process.decode_complete(filepath)

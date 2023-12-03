@@ -58,6 +58,26 @@ def decode_quan_frame_VBS_given_row(code_str, n_w, block_len, split_array, quan_
     return quan_frame, code_str
 
 
+def decode_quan_frame_VBS_given_block(code_str, block_len, split_array, quan_frame, i, j):
+    block_size = block_len * block_len
+    half_block_len = int(block_len / 2)
+    sub_block_size = half_block_len * half_block_len
+    split_mode = split_array[0]
+    if split_mode == 0:
+        val_array, code_str = get_size(code_str, block_size)
+        block = de_RLE(val_array, block_len)
+        quan_frame[i][j] = block
+    else:
+        single_block = np.zeros((block_len, block_len))
+        for k in range(4):
+            slice_x = (k // 2) * half_block_len
+            slice_y = (k % 2) * half_block_len
+            val_array, code_str = get_size(code_str, sub_block_size)
+            block = de_RLE(val_array, half_block_len)
+            single_block[slice_x:slice_x + half_block_len, slice_y:slice_y + half_block_len] = block
+        quan_frame[i][j] = single_block
+    return quan_frame, code_str
+
 def decode_vec_one_frame(code_str, size, mv=True):
     if mv:
         x_array, code_str = get_size(code_str, size)
@@ -118,7 +138,7 @@ def decode_setting(code_str):
         FMEEnable = True
     else:
         FMEEnable = False
-    return values[0], values[1], values[2], values[3], values[4], VBSEnable, FMEEnable, values[7]
+    return values[0], values[1], values[2], values[3], values[4], VBSEnable, FMEEnable, values[7], values[8]
 
 
 def get_size(code_str, size):

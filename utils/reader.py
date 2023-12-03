@@ -96,6 +96,7 @@ def load_config(configpath):
     config_dict["targetBR"] = int(config["RCFlag"]["targetBR"].replace(',', ''))
     config_dict["fps"] = int(config["RCFlag"]["FPS"])
     config_dict["intraLine"] = float(config["RCFlag"]["intraLine"])
+    config_dict["ParallelMode"] = int(config["ParallelMode"]["ParallelMode"])
     # fit nRefFrames into [1, 4]
     if config_dict["nRefFrames"] < 1:
         config_dict["nRefFrames"] = 1
