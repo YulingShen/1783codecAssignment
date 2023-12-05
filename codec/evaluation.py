@@ -18,6 +18,9 @@ def get_lambda(qp, lambda_coefficient):
 def calculate_ssd(arr1, arr2):
     return np.sum((np.array(arr1) - np.array(arr2)) ** 2)
 
+# SAD(sum of absolute difference)
+def calculate_sad(arr1, arr2):
+    return np.sum(np.abs(np.array(arr1) - np.array(arr2)))
 
 def calculate_rdo(ssd, bit_count, lambda_val):
     return ssd + lambda_val * bit_count

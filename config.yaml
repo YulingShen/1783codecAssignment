@@ -17,7 +17,7 @@ w = 352
 h = 288
 
 [nRefFrames]
-nRefFrames = 1
+nRefFrames = 4
 
 [VBSEnable]
 VBSEnable = True
