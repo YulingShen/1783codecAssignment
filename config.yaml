@@ -37,4 +37,4 @@ FPS = 30
 intraLine = 1.5
 
 [ParallelMode]
-ParallelMode = 0
+ParallelMode = 3
