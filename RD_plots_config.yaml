@@ -30,42 +30,81 @@
 # r = 8
 # i = 8
 
-[Default_test]
-FMEEnable = False
-FastME = False
-nRefFrames = 1
-VBSEnable = False
+# [Default_test]
+# FMEEnable = False
+# FastME = False
+# nRefFrames = 1
+# VBSEnable = False
 
-[MRF_test]
-FMEEnable = False
-FastME = False
-nRefFrames = 4
-VBSEnable = False
+# [MRF_test]
+# FMEEnable = False
+# FastME = False
+# nRefFrames = 4
+# VBSEnable = False
 
-[VBSEnable_test]
-FMEEnable = False
-FastME = False
-nRefFrames = 1
-VBSEnable = True
-j = 4
-lambda_coefficient = 1.2
+# [VBSEnable_test]
+# FMEEnable = False
+# FastME = False
+# nRefFrames = 1
+# VBSEnable = True
+# j = 4
+# lambda_coefficient = 1.2
 
-[FractionME_test]
-FMEEnable = True
-FastME = False
-nRefFrames = 1
-VBSEnable = False
+# [FractionME_test]
+# FMEEnable = True
+# FastME = False
+# nRefFrames = 1
+# VBSEnable = False
 
-[FastMME_test]
-FMEEnable = False
-FastME = True
-nRefFrames = 1
-VBSEnable = False
+# [FastMME_test]
+# FMEEnable = False
+# FastME = True
+# nRefFrames = 1
+# VBSEnable = False
 
-[AllEnable_test]
-FMEEnable = True
-FastME = True
-nRefFrames = 4
-VBSEnable = True
-j = 4
-lambda_coefficient = 1.2
+# [AllEnable_test]
+# FMEEnable = True
+# FastME = True
+# nRefFrames = 4
+# VBSEnable = True
+# j = 4
+# lambda_coefficient = 1.2
+
+
+# [RCFlag_0_qp_3]
+# RCFlag = 0
+# qp = 3
+# FPS = 30
+# intraLine = 1.5
+
+# [RCFlag_0_qp_6]
+# RCFlag = 0
+# qp = 6
+# FPS = 30
+# intraLine = 1.5
+
+# [RCFlag_0_qp_9]
+# RCFlag = 0
+# qp = 9
+# FPS = 30
+# intraLine = 1.5
+
+# [RCFlag_1_br_2.4]
+# RCFlag = 1
+# FPS = 30
+# intraLine = 1.5
+
+# [RCFlag_1_br_7]
+# RCFlag = 1
+# qp = 6
+# targetBR = 2,737,152
+# FPS = 30
+# intraLine = 1.5
+
+# [RCFlag_1_br_0.36]
+# RCFlag = 1
+# qp = 9
+# FPS = 30
+# intraLine = 1.5
+# targetBR = 2,737,152
+

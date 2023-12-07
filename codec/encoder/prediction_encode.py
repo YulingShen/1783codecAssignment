@@ -419,6 +419,250 @@ def search_motion_fraction(w, h, i_h, i_w, block_size, r, prediction_array, ref,
     return min_MAE, block, [min_x, min_y, min_k]
 
 
+def search_motion_non_fraction_shared_memory(w, h, i_h, i_w, block_size, r, prediction_array, ref, FastME, mvp = None):
+    # top left of the block
+    min_MAE = 256 * block_size * block_size
+    min_x = r + 1
+    min_y = r + 1
+    min_k = 2
+    # this is the residual
+    block = []
+    # full range search
+    if not FastME:
+        for x in range(-r, r + 1):
+            if x + i_h < 0 or x + i_h + block_size > h:
+                continue
+            for y in range(-r, r + 1):
+                if y + i_w < 0 or y + i_w + block_size > w:
+                    continue
+                pred = prediction_array[x + i_h: x + i_h + block_size, y + i_w: y + i_w + block_size]
+                diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+                MAE = np.sum(np.abs(diff))
+                min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, MAE, x, y, 0)
+                if changed:
+                    block = diff
+    else:
+        # adjust the mvp within the range of frame
+        base_x = mvp[0]
+        while base_x + i_h < 0:
+            base_x += 1
+        while base_x + i_h + block_size > h:
+            base_x -= 1
+        base_y = mvp[1]
+        while base_y + i_w < 0:
+            base_y += 1
+        while base_y + i_w + block_size > w:
+            base_y -= 1
+        base_pair = [base_x, base_y]
+
+        pred_frame = prediction_array
+        # location [0, 0]
+        pred = pred_frame[i_h: i_h + block_size, i_w: i_w + block_size]
+        zero_diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+        zero_MAE = np.sum(np.abs(zero_diff))
+        iter_one = True
+        # get base case
+        base_x = base_pair[0]
+        base_y = base_pair[1]
+        pred = pred_frame[base_x + i_h: base_x + i_h + block_size, base_y + i_w: base_y + i_w + block_size]
+        base_diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+        step_min_MAE = np.sum(np.abs(base_diff))
+        search_signal = True
+        while search_signal:
+            origin_MAE = step_min_MAE
+            origin_x = base_x
+            origin_y = base_y
+            for x_next in [-1, 1]:
+                x = origin_x + x_next
+                if x + i_h < 0 or x + i_h + block_size > h:
+                    continue
+                y = origin_y
+                pred = pred_frame[x + i_h: x + i_h + block_size, y + i_w: y + i_w + block_size]
+                diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+                MAE = np.sum(np.abs(diff))
+                if MAE < step_min_MAE:
+                    base_x = x
+                    base_y = y
+                    step_min_MAE = MAE
+                    base_diff = diff
+            for y_next in [-1, 1]:
+                y = origin_y + y_next
+                if y + i_w < 0 or y + i_w + block_size > w:
+                    continue
+                x = origin_x
+                pred = pred_frame[x + i_h: x + i_h + block_size, y + i_w: y + i_w + block_size]
+                diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+                MAE = np.sum(np.abs(diff))
+                if MAE < step_min_MAE:
+                    base_x = x
+                    base_y = y
+                    step_min_MAE = MAE
+                    base_diff = diff
+            if step_min_MAE >= origin_MAE:
+                search_signal = False
+            if iter_one and step_min_MAE >= zero_MAE:
+                search_signal = False
+                step_min_MAE = zero_MAE
+                base_x = 0
+                base_y = 0
+                base_diff = zero_diff
+        min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, step_min_MAE, base_x, base_y, 0)
+        if changed:
+            block = base_diff
+    return min_MAE, block, [min_x, min_y, min_k]
+
+
+def search_motion_fraction_shared_memory(w, h, i_h, i_w, block_size, r, prediction_array, ref, FastME, mvp = None):
+    # top left of the block
+    min_MAE = 256 * block_size * block_size
+    min_x = 2 * r + 1
+    min_y = 2 * r + 1
+    min_k = 2
+    block = []
+    # full range search
+    if not FastME:
+        for x in range(-2 * r, 2 * r + 1):
+            if x / 2 + i_h < 0 or x / 2 + i_h + block_size > h:
+                continue
+            for y in range(-2 * r, 2 * r + 1):
+                if y / 2 + i_w < 0 or y / 2 + i_w + block_size > w:
+                    continue
+                if x % 2 == 0:
+                    x_arr = [x // 2]
+                else:
+                    x_arr = [x // 2, (x + 1) // 2]
+                if y % 2 == 0:
+                    y_arr = [y // 2]
+                else:
+                    y_arr = [y // 2, (y + 1) // 2]
+                pred = np.zeros((block_size, block_size), dtype=np.int16)
+                block_count = 0
+                for each_x in x_arr:
+                    for each_y in y_arr:
+                        pred = np.add(pred, prediction_array[each_x + i_h: each_x + i_h + block_size,
+                                            each_y + i_w: each_y + i_w + block_size])
+                        block_count += 1
+                pred = pred // block_count
+                diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+                MAE = np.sum(np.abs(diff))
+                min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, MAE, x, y, 0)
+                if changed:
+                    block = diff
+    else:
+        base_x = mvp[0]
+        while base_x / 2 + i_h < 0:
+            base_x += 1
+        while base_x / 2 + i_h + block_size > h:
+            base_x -= 1
+        base_y = mvp[1]
+        while base_y / 2 + i_w < 0:
+            base_y += 1
+        while base_y / 2 + i_w + block_size > w:
+            base_y -= 1
+        base_pair = [base_x, base_y]
+        pred_frame = prediction_array
+        # location [0, 0]
+        pred = pred_frame[i_h: i_h + block_size, i_w: i_w + block_size]
+        zero_diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+        zero_MAE = np.sum(np.abs(zero_diff))
+        iter_one = True
+        # get base case
+        base_x = base_pair[0]
+        base_y = base_pair[1]
+        if base_x % 2 == 0:
+            x_arr = [base_x // 2]
+        else:
+            x_arr = [base_x // 2, (base_x + 1) // 2]
+        if base_y % 2 == 0:
+            y_arr = [base_y // 2]
+        else:
+            y_arr = [base_y // 2, (base_y + 1) // 2]
+        pred = np.zeros((block_size, block_size), dtype=np.int16)
+        block_count = 0
+        for each_x in x_arr:
+            for each_y in y_arr:
+                pred = np.add(pred, pred_frame[each_x + i_h: each_x + i_h + block_size,
+                                    each_y + i_w: each_y + i_w + block_size])
+                block_count += 1
+        pred = pred // block_count
+        base_diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+        step_min_MAE = np.sum(np.abs(base_diff))
+        search_signal = True
+        while search_signal:
+            origin_MAE = step_min_MAE
+            origin_x = base_x
+            origin_y = base_y
+            for x_next in [-1, 1]:
+                x = origin_x + x_next
+                if x / 2 + i_h < 0 or x / 2 + i_h + block_size > h:
+                    continue
+                y = origin_y
+                if x % 2 == 0:
+                    x_arr = [x // 2]
+                else:
+                    x_arr = [x // 2, (x + 1) // 2]
+                if y % 2 == 0:
+                    y_arr = [y // 2]
+                else:
+                    y_arr = [y // 2, (y + 1) // 2]
+                pred = np.zeros((block_size, block_size), dtype=np.int16)
+                block_count = 0
+                for each_x in x_arr:
+                    for each_y in y_arr:
+                        pred = np.add(pred, pred_frame[each_x + i_h: each_x + i_h + block_size,
+                                            each_y + i_w: each_y + i_w + block_size])
+                        block_count += 1
+                pred = pred // block_count
+                diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+                MAE = np.sum(np.abs(diff))
+                if MAE < step_min_MAE:
+                    base_x = x
+                    base_y = y
+                    step_min_MAE = MAE
+                    base_diff = diff
+            for y_next in [-1, 1]:
+                y = origin_y + y_next
+                if y / 2 + i_w < 0 or y / 2 + i_w + block_size > w:
+                    continue
+                x = origin_x
+                if x % 2 == 0:
+                    x_arr = [x // 2]
+                else:
+                    x_arr = [x // 2, (x + 1) // 2]
+                if y % 2 == 0:
+                    y_arr = [y // 2]
+                else:
+                    y_arr = [y // 2, (y + 1) // 2]
+                pred = np.zeros((block_size, block_size), dtype=np.int16)
+                block_count = 0
+                for each_x in x_arr:
+                    for each_y in y_arr:
+                        pred = np.add(pred, pred_frame[each_x + i_h: each_x + i_h + block_size,
+                                            each_y + i_w: each_y + i_w + block_size])
+                        block_count += 1
+                pred = pred // block_count
+                diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+                MAE = np.sum(np.abs(diff))
+                if MAE < step_min_MAE:
+                    base_x = x
+                    base_y = y
+                    step_min_MAE = MAE
+                    base_diff = diff
+            if step_min_MAE >= origin_MAE:
+                search_signal = False
+            if iter_one and step_min_MAE >= zero_MAE:
+                search_signal = False
+                step_min_MAE = zero_MAE
+                base_x = 0
+                base_y = 0
+                base_diff = zero_diff
+        min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, step_min_MAE, base_x,
+                                                            base_y, 0)
+        if changed:
+            block = base_diff
+    return min_MAE, block, [min_x, min_y, min_k]
+
+
 def intra_residual(frame_block, n, q):
     block_size = len(frame_block[0][0])
     n_h = len(frame_block)

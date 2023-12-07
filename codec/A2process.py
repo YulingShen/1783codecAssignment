@@ -188,4 +188,4 @@ def decode_complete(filepath):
                     recon_array = recon_array[:4]
             video.append(recon)
             frame_count += 1
-    reader.write_frame_array_to_file(video, filepath + '_recon.yuv')
+    reader.write_frame_array_to_file(video, filepath + '_recon_{}.yuv'.format(qp))

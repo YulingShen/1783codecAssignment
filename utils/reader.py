@@ -16,7 +16,7 @@ def y_only_byte_frame_array(y_only_arr, w, h, num_frames = None):
         num_frames = int(len(y_only_arr) / num_pixel)
     frames = []
     for x in range(num_frames):
-        print("read frame: " + str(x))
+        # print("read frame: " + str(x))
         frame = np.zeros((h, w), dtype=np.uint8)
         frame_bytes = y_only_arr[x * num_pixel: x * num_pixel + num_pixel]
         for n in range(num_pixel):

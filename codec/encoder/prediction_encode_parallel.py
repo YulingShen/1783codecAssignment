@@ -5,11 +5,13 @@ from codec.decoder import quantization_decode, transform_decode
 from codec.encoder import transform_encode, quantization_encode, entropy_encode, prediction_encode_row, \
     differential_encode
 from codec.encoder.prediction_encode import search_motion_non_fraction, search_motion_fraction, closest_multi_power2
+from codec.encoder.prediction_encode import search_motion_non_fraction_shared_memory, search_motion_fraction_shared_memory
+from multiprocessing.shared_memory import SharedMemory
+from multiprocessing.managers import SharedMemoryManager
 
 
-def generate_residual_ME_block(prediction_array, frame_block, w, h, n, r, lambda_val, q_non_split, q_split, FMEEnable,
+def generate_residual_ME_block(prediction_array, block_size, frame_block, w, h, n, r, lambda_val, q_non_split, q_split, FMEEnable,
                                VBSEnable, i, j):
-    block_size = len(frame_block[0][0])
     vector_array = []
     half_block_size = int(block_size / 2)
     code_str_entropy = ''
@@ -63,6 +65,111 @@ def generate_residual_ME_block(prediction_array, frame_block, w, h, n, r, lambda
                                                                             False)
                 else:
                     min_MAE, block_origin, vec = search_motion_fraction(w, h, i_h, i_w, half_block_size, r,
+                                                                        prediction_array,
+                                                                        frame_block[i][j][
+                                                                        slice_x:slice_x + half_block_size,
+                                                                        slice_y:slice_y + half_block_size], False)
+                vec_arr_split.append(vec)
+                for x in range(half_block_size):
+                    for y in range(half_block_size):
+                        block[x][y] = closest_multi_power2(block_origin[x][y], n)
+                tran = transform_encode.transform_block(block)
+                quan = quantization_encode.quantization_block(tran, q_split)
+                code_str, bits = entropy_encode.entropy_encode_single_block(quan.astype(np.int16))
+                dequan = quantization_decode.dequantization_block(quan, q_split)
+                itran = transform_decode.inverse_transform_block(dequan)
+                # ssd is cumulative across the sub blocks
+                ssd = evaluation.calculate_ssd(itran, block_origin)
+                ssd_split_sum += ssd
+                # vector encode est
+                code, bits_vec = entropy_encode.entropy_encode_single_vec(vec)
+                bits += bits_vec
+                bits_split_sum += bits
+                code_str_split += code_str
+                itran_split[slice_x:slice_x + half_block_size, slice_y:slice_y + half_block_size] = itran
+            r_d_score_split = evaluation.calculate_rdo(ssd_split_sum, lambda_val, bits_split_sum)
+    else:
+        r_d_score_split = r_d_score_non_split
+    # the estimated score is proportional to ssd and number of bits,
+    # which is smaller for better
+    if r_d_score_non_split <= r_d_score_split:
+        split_indicator = 0
+        vector_array.append(vec_non_split)
+        code_str_entropy += code_str_non_split
+        block_itran = itran_non_split
+    else:
+        split_indicator = 1
+        vector_array += vec_arr_split
+        code_str_entropy += code_str_split
+        block_itran = itran_split
+
+    return block_itran, entropy_encode.entropy_encode_vec_alter(vector_array)[0], entropy_encode.exp_golomb(
+        split_indicator)[0], code_str_entropy
+
+
+def generate_residual_ME_block_shared_memory(block_size, w, h, n, r, lambda_val, q_non_split, q_split, FMEEnable,
+                               VBSEnable, i, j, pa_name, pa_shape, pa_dtype, fb_name, fb_shape, fb_dtype):
+    
+    shm_pa = SharedMemory(pa_name)
+    VBSEnable = False
+    prediction_array = np.ndarray(pa_shape, dtype=pa_dtype, buffer=shm_pa.buf)
+    # np.recarray(shape=pa_shape, dtype=pa_dtype, buf=shm_pa.buf)
+    shm_fb = SharedMemory(fb_name)
+    frame_block = np.ndarray(fb_shape, dtype=fb_dtype, buffer=shm_fb.buf)
+
+    vector_array = []
+    half_block_size = int(block_size / 2)
+    code_str_entropy = ''
+    i_h = i * block_size
+    i_w = j * block_size
+    if not FMEEnable:
+        min_MAE, block_origin, vec_non_split = search_motion_non_fraction_shared_memory(w, h, i_h, i_w, block_size, r,
+                                                                          prediction_array,
+                                                                          frame_block[i][j], False)
+    else:
+        min_MAE, block_origin, vec_non_split = search_motion_fraction_shared_memory(w, h, i_h, i_w, block_size, r,
+                                                                      prediction_array,
+                                                                      frame_block[i][j], False)
+    # residual bits and ssd
+    block = np.zeros((block_size, block_size), dtype=np.int16)
+    for x in range(block_size):
+        for y in range(block_size):
+            block[x][y] = closest_multi_power2(block_origin[x][y], n)
+    tran = transform_encode.transform_block(block)
+    quan = quantization_encode.quantization_block(tran, q_non_split)
+    code_str_non_split, bits_non_split = entropy_encode.entropy_encode_single_block(quan.astype(np.int16))
+    dequan = quantization_decode.dequantization_block(quan, q_non_split)
+    itran_non_split = transform_decode.inverse_transform_block(dequan)
+    ssd = evaluation.calculate_ssd(itran_non_split, block_origin)
+    # vector part
+    code, bits_vec = entropy_encode.entropy_encode_single_vec(vec_non_split)
+    bits_non_split += bits_vec
+    # mode indicate part
+    code, bits_mode = entropy_encode.exp_golomb(0)
+    bits_non_split += bits_mode
+    r_d_score_non_split = evaluation.calculate_rdo(ssd, lambda_val, bits_non_split)
+    if VBSEnable:
+        # split
+        vec_arr_split = []
+        code_str_split = ''
+        bits_split_sum = 0
+        ssd_split_sum = 0
+        block = np.zeros((half_block_size, half_block_size), dtype=np.int16)
+        itran_split = np.zeros((block_size, block_size), dtype=np.int16)
+        # mode only needed once for split 4 blocks
+        code, bits_mode = entropy_encode.exp_golomb(1)
+        bits_split_sum += bits_mode
+        for slice_x in [0, half_block_size]:
+            for slice_y in [0, half_block_size]:
+                if not FMEEnable:
+                    min_MAE, block_origin, vec = search_motion_non_fraction_shared_memory(w, h, i_h, i_w, half_block_size, r,
+                                                                            prediction_array,
+                                                                            frame_block[i][j][
+                                                                            slice_x:slice_x + half_block_size,
+                                                                            slice_y:slice_y + half_block_size],
+                                                                            False)
+                else:
+                    min_MAE, block_origin, vec = search_motion_fraction_shared_memory(w, h, i_h, i_w, half_block_size, r,
                                                                         prediction_array,
                                                                         frame_block[i][j][
                                                                         slice_x:slice_x + half_block_size,

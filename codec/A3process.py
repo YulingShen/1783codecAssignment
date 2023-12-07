@@ -53,20 +53,21 @@ def encode_complete(filepath, config_dict, table_dict):
         bits_tables['intra'] = table_dict['QCIF_intra']
         bits_tables['inter'] = table_dict['QCIF_inter']
     if RCFlag == 0 and ParallelMode == 0:
-        A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
+        recon_array, bits = A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
                                   FMEEnable, FastME, frame)
     elif ParallelMode in [1, 2]:
-        A3process_parallel.encode_parallel_1_2(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
+        recon_array, bits = A3process_parallel.encode_parallel_1_2(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
                                   FMEEnable, FastME, ParallelMode, frame)
     elif ParallelMode == 3:
-        A3process_parallel.encode_parallel_3(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
+        recon_array, bits = A3process_parallel.encode_parallel_3(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
                                   FMEEnable, FastME, ParallelMode, frame)
     elif RCFlag == 1:
-        encode_RC_1(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME,
+        recon_array, bits =encode_RC_1(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME,
                     RCFlag, targetBR, fps, bits_tables, frame)
     elif RCFlag in [2, 3]:
-        encode_RC_2(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME,
+        recon_array, bits =encode_RC_2(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME,
                     RCFlag, targetBR, fps, bits_tables, intraLine, frame)
+    return recon_array, bits
 
 
 def encode_RC_1(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable,
@@ -80,6 +81,7 @@ def encode_RC_1(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
     diff_file.write(line)
     diff_file.write("\n")
     bit_count_arr = []
+    prediction_to_file = []
     if num_frames is None or len(frame_block_array) < num_frames:
         num_frames = len(frame_block_array)
     frame_block_array = frame_block_array[:num_frames]
@@ -166,9 +168,11 @@ def encode_RC_1(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
             prediction_array.insert(0, prediction)
             if len(prediction_array) >= nRefFrames:
                 prediction_array = prediction_array[:nRefFrames]
+        prediction_to_file.append(prediction)
         bit_count_arr.append(bit_sum)
     residual_file.close()
     diff_file.close()
+    return prediction_to_file, bit_count_arr
 
 
 def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable,
@@ -193,6 +197,7 @@ def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
     budget_profile = []
     vec_arr_first = []
     split_arr_first = []
+    prediction_to_file = []
     print('starting first pass')
     lambda_val = evaluation.get_lambda(qp, lambda_coefficient)
     q = quantization.generate_q(block_size, qp)
@@ -417,11 +422,12 @@ def encode_RC_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEna
             prediction_array.insert(0, prediction)
             if len(prediction_array) >= nRefFrames:
                 prediction_array = prediction_array[:nRefFrames]
+        prediction_to_file.append(prediction)
         bit_count_arr.append(bit_sum)
     residual_file.close()
     diff_file.close()
     # np.savetxt(filepath + 'bits.txt', bit_count_arr, '%d')
-
+    return prediction_to_file, bits
 
 def decode_complete(filepath):
     if filepath[-4:] == '.yuv':

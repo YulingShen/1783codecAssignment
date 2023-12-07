@@ -10,14 +10,14 @@ QP = 6
 period = 5
 
 [frame]
-frame = 3
+frame = 21
 
 [resolution]
 w = 352
 h = 288
 
 [nRefFrames]
-nRefFrames = 4
+nRefFrames = 1
 
 [VBSEnable]
 VBSEnable = True
@@ -32,7 +32,7 @@ FastME = True
 
 [RCFlag]
 RCFlag = 0
-targetBR = 2,737,152
+targetBR = 2737152
 FPS = 30
 intraLine = 1.5
 
