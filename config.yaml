@@ -10,7 +10,7 @@ QP = 6
 period = 5
 
 [frame]
-frame = 3
+frame = 11
 
 [resolution]
 w = 352
@@ -37,4 +37,4 @@ FPS = 30
 intraLine = 1.5
 
 [ParallelMode]
-ParallelMode = 0
+ParallelMode = 3
