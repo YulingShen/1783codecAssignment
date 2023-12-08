@@ -3,6 +3,7 @@ from codec import blocking, quantization, evaluation
 from codec.encoder import prediction_encode, transform_encode, quantization_encode, differential_encode, entropy_encode
 from codec.decoder import prediction_decode, transform_decode, quantization_decode, differential_decode, entropy_decode
 import numpy as np
+import time
 
 
 def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME,
@@ -70,6 +71,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
             bit_sum = 0
             # here the transform and quantization are done within the prediction part
             # as it needs these information to decide if sub blocks takes less r-d cost
+            t = time.time()
             if x % period == 0:
                 prediction, vec, split, res_code = prediction_encode.intra_residual_VBS(frame_block_array[x], n,
                                                                                         lambda_val, q, q_split)
@@ -111,6 +113,7 @@ def encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, 
                 prediction_array.insert(0, prediction)
                 if len(prediction_array) >= nRefFrames:
                     prediction_array = prediction_array[:nRefFrames]
+            print("No paralel time to generate residual", time.time()-t)
             bit_count_arr.append(bit_sum)
             prediction_to_file.append(prediction)
     residual_file.close()

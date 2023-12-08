@@ -4,6 +4,7 @@ from codec import evaluation
 from codec.decoder import quantization_decode, transform_decode
 from codec.encoder import transform_encode, quantization_encode, entropy_encode
 
+import time
 
 def closest_multi_power2(x, n):
     base = 2 ** n
@@ -430,17 +431,14 @@ def search_motion_non_fraction_shared_memory(w, h, i_h, i_w, block_size, r, pred
     # full range search
     if not FastME:
         for x in range(-r, r + 1):
-            if x + i_h < 0 or x + i_h + block_size > h:
-                continue
-            for y in range(-r, r + 1):
-                if y + i_w < 0 or y + i_w + block_size > w:
-                    continue
-                pred = prediction_array[x + i_h: x + i_h + block_size, y + i_w: y + i_w + block_size]
-                diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
-                MAE = np.sum(np.abs(diff))
-                min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, MAE, x, y, 0)
-                if changed:
-                    block = diff
+            if not(x + i_h < 0 or x + i_h + block_size > h):
+                for y in range(-r, r + 1):
+                    if not(y + i_w < 0 or y + i_w + block_size > w):
+                        pred = prediction_array[x + i_h: x + i_h + block_size, y + i_w: y + i_w + block_size]
+                        diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+                        MAE = np.sum(np.abs(diff))
+                        min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, MAE, x, y, 0)
+                        block = diff if changed else block
     else:
         # adjust the mvp within the range of frame
         base_x = mvp[0]
@@ -520,34 +518,37 @@ def search_motion_fraction_shared_memory(w, h, i_h, i_w, block_size, r, predicti
     min_k = 2
     block = []
     # full range search
+    # print(prediction_array.shape)
     if not FastME:
         for x in range(-2 * r, 2 * r + 1):
-            if x / 2 + i_h < 0 or x / 2 + i_h + block_size > h:
-                continue
-            for y in range(-2 * r, 2 * r + 1):
-                if y / 2 + i_w < 0 or y / 2 + i_w + block_size > w:
-                    continue
-                if x % 2 == 0:
-                    x_arr = [x // 2]
-                else:
-                    x_arr = [x // 2, (x + 1) // 2]
-                if y % 2 == 0:
-                    y_arr = [y // 2]
-                else:
-                    y_arr = [y // 2, (y + 1) // 2]
-                pred = np.zeros((block_size, block_size), dtype=np.int16)
-                block_count = 0
-                for each_x in x_arr:
-                    for each_y in y_arr:
-                        pred = np.add(pred, prediction_array[each_x + i_h: each_x + i_h + block_size,
-                                            each_y + i_w: each_y + i_w + block_size])
-                        block_count += 1
-                pred = pred // block_count
-                diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
-                MAE = np.sum(np.abs(diff))
-                min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, MAE, x, y, 0)
-                if changed:
-                    block = diff
+            if not(x / 2 + i_h < 0 or x / 2 + i_h + block_size > h):
+                for y in range(-2 * r, 2 * r + 1):
+                    if not(y / 2 + i_w < 0 or y / 2 + i_w + block_size > w):
+                        if x % 2 == 0:
+                            x_arr = [x // 2]
+                        else:
+                            x_arr = [x // 2, (x + 1) // 2]
+                        if y % 2 == 0:
+                            y_arr = [y // 2]
+                        else:
+                            y_arr = [y // 2, (y + 1) // 2]
+                        pred = np.zeros((block_size, block_size), dtype=np.int16)
+                        block_count = 0
+                        # print(x_arr, y_arr)
+                        for each_x in x_arr:
+                            for each_y in y_arr:
+                                slice_x = slice(each_x + i_h, each_x + i_h + block_size)
+                                slice_y = slice(each_y + i_w, each_y + i_w + block_size)
+                                # pred = np.add(pred, prediction_array[each_x + i_h: each_x + i_h + block_size,
+                                #                     each_y + i_w: each_y + i_w + block_size])
+                                pred += prediction_array[slice_x, slice_y]
+                                block_count += 1
+                        pred = pred // block_count
+                        diff = np.subtract(ref.astype(np.int16), pred.astype(np.int16))
+                        MAE = np.sum(np.abs(diff))
+                        min_MAE, min_x, min_y, min_k, changed = compare_MAE(min_MAE, min_x, min_y, min_k, MAE, x, y, 0)
+                        if changed:
+                            block = diff
     else:
         base_x = mvp[0]
         while base_x / 2 + i_h < 0:

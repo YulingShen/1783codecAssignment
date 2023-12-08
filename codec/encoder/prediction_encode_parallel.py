@@ -8,6 +8,7 @@ from codec.encoder.prediction_encode import search_motion_non_fraction, search_m
 from codec.encoder.prediction_encode import search_motion_non_fraction_shared_memory, search_motion_fraction_shared_memory
 from multiprocessing.shared_memory import SharedMemory
 from multiprocessing.managers import SharedMemoryManager
+import time
 
 
 def generate_residual_ME_block(prediction_array, block_size, frame_block, w, h, n, r, lambda_val, q_non_split, q_split, FMEEnable,
@@ -43,6 +44,7 @@ def generate_residual_ME_block(prediction_array, block_size, frame_block, w, h, 
     code, bits_mode = entropy_encode.exp_golomb(0)
     bits_non_split += bits_mode
     r_d_score_non_split = evaluation.calculate_rdo(ssd, lambda_val, bits_non_split)
+    
     if VBSEnable:
         # split
         vec_arr_split = []
@@ -111,12 +113,10 @@ def generate_residual_ME_block_shared_memory(block_size, w, h, n, r, lambda_val,
                                VBSEnable, i, j, pa_name, pa_shape, pa_dtype, fb_name, fb_shape, fb_dtype):
     
     shm_pa = SharedMemory(pa_name)
-    VBSEnable = False
     prediction_array = np.ndarray(pa_shape, dtype=pa_dtype, buffer=shm_pa.buf)
     # np.recarray(shape=pa_shape, dtype=pa_dtype, buf=shm_pa.buf)
     shm_fb = SharedMemory(fb_name)
     frame_block = np.ndarray(fb_shape, dtype=fb_dtype, buffer=shm_fb.buf)
-
     vector_array = []
     half_block_size = int(block_size / 2)
     code_str_entropy = ''

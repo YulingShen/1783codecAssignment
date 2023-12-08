@@ -4,10 +4,10 @@ n = 3
 i = 16
 
 [QP]
-QP = 6
+QP = 5
 
 [I_Frame]
-period = 5
+period = 10
 
 [frame]
 frame = 21
