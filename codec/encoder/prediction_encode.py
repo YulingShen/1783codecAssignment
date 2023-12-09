@@ -228,7 +228,7 @@ def search_motion_non_fraction(w, h, i_h, i_w, block_size, r, prediction_array, 
                 origin_y = base_y
                 for x_next in [-1, 1]:
                     x = origin_x + x_next
-                    if x + i_h < 0 or x + i_h + block_size > h:
+                    if x + i_h < 0 or x + i_h + block_size > h or x < -r or x > r:
                         continue
                     y = origin_y
                     pred = pred_frame[x + i_h: x + i_h + block_size, y + i_w: y + i_w + block_size]
@@ -241,7 +241,7 @@ def search_motion_non_fraction(w, h, i_h, i_w, block_size, r, prediction_array, 
                         base_diff = diff
                 for y_next in [-1, 1]:
                     y = origin_y + y_next
-                    if y + i_w < 0 or y + i_w + block_size > w:
+                    if y + i_w < 0 or y + i_w + block_size > w or y < -r or y > r:
                         continue
                     x = origin_x
                     pred = pred_frame[x + i_h: x + i_h + block_size, y + i_w: y + i_w + block_size]

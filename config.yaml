@@ -1,10 +1,10 @@
 [RNI_setting]
-r = 8
+r = 16
 n = 3
 i = 16
 
 [QP]
-QP = 6
+QP = 4
 
 [I_Frame]
 period = 5
