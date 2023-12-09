@@ -199,7 +199,7 @@ def encode_parallel_1_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames
 # parallel over frames
 def encode_parallel_3(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
                       FMEEnable, FastME, ParallelMode, num_frames=None):
-    FastME = False
+    # FastME = False
     encode_executor = ThreadPoolExecutor(max_workers=2)
     y_only_bytes = reader.read_raw_byte_array(filepath)
     frame_block_array = blocking.block_raw(y_only_bytes, w, h, block_size, num_frames)
@@ -239,9 +239,9 @@ def encode_parallel_3(filepath, w, h, block_size, n, r, qp, period, nRefFrames, 
         vec_array_2 = []
         split_array_1 = []
         split_array_2 = []
-        for i_1 in range(n_rows_frame + 3):
+        for i_1 in range(n_rows_frame + 2):
             print(i_1)
-            i_2 = i_1 - 3
+            i_2 = i_1 - 2
             if i_1 < n_rows_frame:
                 if x_1 % period == 0:
                     task = encode_executor.submit(prediction_encode_row.intra_residual_row, frame_block_array[x], n,
