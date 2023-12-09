@@ -8,7 +8,7 @@ from codec.encoder import entropy_encode, prediction_encode_parallel, prediction
 from utils import reader
 
 
-def encode_parallel_mode_1(prediction_array, frame_block, w, h, n, r, lambda_val, q_non_split, q_split, FMEEnable,
+def encode_parallel_mode_1(prediction_array, frame_block, w, h, n, r, lambda_val, q_non_split, q_split, FMEEnable, FastME,
                            VBSEnable, encode_executor):
     block_size = len(frame_block[0][0])
     n_rows_frame = (h - 1) // block_size + 1
@@ -20,7 +20,7 @@ def encode_parallel_mode_1(prediction_array, frame_block, w, h, n, r, lambda_val
         for j in range(n_cols_frame):
             task = encode_executor.submit(prediction_encode_parallel.generate_residual_ME_block,
                                           prediction_array, frame_block, w, h, n, r, lambda_val,
-                                          q_non_split, q_split, FMEEnable,
+                                          q_non_split, q_split, FMEEnable, FastME,
                                           VBSEnable, i, j)
             task_handles.append(task)
     block_itran = np.zeros((n_rows_frame, n_cols_frame, block_size, block_size), dtype=np.int16)
@@ -167,7 +167,7 @@ def encode_parallel_1_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames
             prediction, diff_file_code, res_file_code = encode_parallel_mode_1(prediction_array,
                                                                                frame_block_array[x], w, h, n, r,
                                                                                lambda_val, q, q_split,
-                                                                               FMEEnable, VBSEnable, encode_executor)
+                                                                               FMEEnable, FastME, VBSEnable, encode_executor)
             diff_file.write(diff_file_code)
             residual_file.write(res_file_code)
             prediction_array.insert(0, prediction)
@@ -240,7 +240,6 @@ def encode_parallel_3(filepath, w, h, block_size, n, r, qp, period, nRefFrames, 
         split_array_1 = []
         split_array_2 = []
         for i_1 in range(n_rows_frame + 2):
-            print(i_1)
             i_2 = i_1 - 2
             if i_1 < n_rows_frame:
                 if x_1 % period == 0:
