@@ -7,7 +7,7 @@ from codec.encoder import transform_encode, quantization_encode, entropy_encode,
 from codec.encoder.prediction_encode import search_motion_non_fraction, search_motion_fraction, closest_multi_power2
 
 
-def generate_residual_ME_block(prediction_array, frame_block, w, h, n, r, lambda_val, q_non_split, q_split, FMEEnable,
+def generate_residual_ME_block(prediction_array, frame_block, w, h, n, r, lambda_val, q_non_split, q_split, FMEEnable, FastME,
                                VBSEnable, i, j):
     block_size = len(frame_block[0][0])
     vector_array = []
@@ -15,14 +15,15 @@ def generate_residual_ME_block(prediction_array, frame_block, w, h, n, r, lambda
     code_str_entropy = ''
     i_h = i * block_size
     i_w = j * block_size
+    mvp = [0, 0]
     if not FMEEnable:
         min_MAE, block_origin, vec_non_split = search_motion_non_fraction(w, h, i_h, i_w, block_size, r,
                                                                           prediction_array,
-                                                                          frame_block[i][j], False)
+                                                                          frame_block[i][j], FastME, mvp)
     else:
         min_MAE, block_origin, vec_non_split = search_motion_fraction(w, h, i_h, i_w, block_size, r,
                                                                       prediction_array,
-                                                                      frame_block[i][j], False)
+                                                                      frame_block[i][j], FastME, mvp)
     # residual bits and ssd
     block = np.zeros((block_size, block_size), dtype=np.int16)
     for x in range(block_size):
@@ -52,6 +53,7 @@ def generate_residual_ME_block(prediction_array, frame_block, w, h, n, r, lambda
         # mode only needed once for split 4 blocks
         code, bits_mode = entropy_encode.exp_golomb(1)
         bits_split_sum += bits_mode
+        mvp_split = mvp
         for slice_x in [0, half_block_size]:
             for slice_y in [0, half_block_size]:
                 if not FMEEnable:
@@ -60,13 +62,13 @@ def generate_residual_ME_block(prediction_array, frame_block, w, h, n, r, lambda
                                                                             frame_block[i][j][
                                                                             slice_x:slice_x + half_block_size,
                                                                             slice_y:slice_y + half_block_size],
-                                                                            False)
+                                                                            FastME, mvp_split)
                 else:
                     min_MAE, block_origin, vec = search_motion_fraction(w, h, i_h, i_w, half_block_size, r,
                                                                         prediction_array,
                                                                         frame_block[i][j][
                                                                         slice_x:slice_x + half_block_size,
-                                                                        slice_y:slice_y + half_block_size], False)
+                                                                        slice_y:slice_y + half_block_size], FastME, mvp_split)
                 vec_arr_split.append(vec)
                 for x in range(half_block_size):
                     for y in range(half_block_size):
@@ -85,6 +87,7 @@ def generate_residual_ME_block(prediction_array, frame_block, w, h, n, r, lambda
                 bits_split_sum += bits
                 code_str_split += code_str
                 itran_split[slice_x:slice_x + half_block_size, slice_y:slice_y + half_block_size] = itran
+                mvp_split = vec[:2]
             r_d_score_split = evaluation.calculate_rdo(ssd_split_sum, lambda_val, bits_split_sum)
     else:
         r_d_score_split = r_d_score_non_split
