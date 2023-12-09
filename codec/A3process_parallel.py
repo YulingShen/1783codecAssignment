@@ -54,7 +54,7 @@ def encode_parallel_mode_1(prediction_array, frame_block, w, h, n, r, lambda_val
 
 
 def encode_intra_mode_2(frame_block, w, h, n, lambda_val, q_non_split, q_split,
-                          VBSEnable, encode_executor):
+                        VBSEnable, encode_executor):
     block_size = len(frame_block[0][0])
     n_rows_frame = (h - 1) // block_size + 1
     n_cols_frame = (w - 1) // block_size + 1
@@ -245,17 +245,17 @@ def encode_parallel_3(filepath, w, h, block_size, n, r, qp, period, nRefFrames, 
             if i_1 < n_rows_frame:
                 if x_1 % period == 0:
                     task = encode_executor.submit(prediction_encode_row.intra_residual_row, frame_block_array[x], n,
-                                                                                            lambda_val, q, q_split,
-                                                                                            VBSEnable, prediction_intra, i_1)
+                                                  lambda_val, q, q_split,
+                                                  VBSEnable, prediction_intra, i_1)
                 else:
                     task = encode_executor.submit(prediction_encode_row.generate_residual_ME_row, prediction_array,
-                                                                                                   frame_block_array[x],
-                                                                                                   w,
-                                                                                                   h, n, r, lambda_val,
-                                                                                                   q, q_split,
-                                                                                                   FMEEnable,
-                                                                                                   FastME, VBSEnable,
-                                                                                                   block_itran_1, i_1)
+                                                  frame_block_array[x],
+                                                  w,
+                                                  h, n, r, lambda_val,
+                                                  q, q_split,
+                                                  FMEEnable,
+                                                  FastME, VBSEnable,
+                                                  block_itran_1, i_1)
                 task_handles[0][i_1] = task
             if i_2 >= 0 and x_2 < num_frames:
                 if x_2 % period == 0:
@@ -282,11 +282,13 @@ def encode_parallel_3(filepath, w, h, block_size, n, r, qp, period, nRefFrames, 
                     vec_array_1 += vec
                     split_array_1 += split
                     res = blocking.deblock_frame(block_itran_1)
-                    h_index = i_1 * block_size + block_size
-                    prediction_temp[0:h_index] = prediction_decode.decode_residual_ME_VBS(prediction_array, res[0:h_index], vec_array_1, split_array_1,
-                                                                          w, h_index,
-                                                                          block_size,
-                                                                          FMEEnable)
+                    h_index = i_1 * block_size
+                    prediction_temp[h_index: h_index + block_size] = prediction_decode.decode_residual_ME_VBS_row(
+                        prediction_array,
+                        res, vec, split,
+                        w, h,
+                        block_size,
+                        FMEEnable, i_1)[h_index: h_index + block_size]
                     prediction_array_temp[0] = prediction_temp
                 residual_file.write(res_code)
                 if VBSEnable:
@@ -316,9 +318,10 @@ def encode_parallel_3(filepath, w, h, block_size, n, r, qp, period, nRefFrames, 
             prediction_array = [blocking.deblock_frame(prediction_intra)]
         else:
             res = blocking.deblock_frame(block_itran_1)
-            prediction_array.insert(0, prediction_decode.decode_residual_ME_VBS(prediction_array, res, vec_array_1, split_array_1, w, h,
-                                                                  block_size,
-                                                                  FMEEnable))
+            prediction_array.insert(0, prediction_decode.decode_residual_ME_VBS(prediction_array, res, vec_array_1,
+                                                                                split_array_1, w, h,
+                                                                                block_size,
+                                                                                FMEEnable))
             if len(prediction_array) >= nRefFrames:
                 prediction_array = prediction_array[:nRefFrames]
         if x_2 < num_frames:

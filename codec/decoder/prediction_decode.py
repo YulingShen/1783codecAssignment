@@ -64,6 +64,47 @@ def decode_residual_ME_VBS(prediction_array, residual, vector_array, split_array
     return np.add(ME_prediction, residual).clip(0, 255).astype(np.uint8)
 
 
+def decode_residual_ME_VBS_row(prediction_array, residual, vector_array, split_array, w, h, block_size, FMEEnable, i):
+    n_w = (w - 1) // block_size + 1
+    n_h = (h - 1) // block_size + 1
+    block_prediction = np.zeros((n_h, n_w, block_size, block_size), dtype=np.uint8)
+    half_block_size = int(block_size / 2)
+    vector_counter = 0
+    for j in range(n_w):
+        split_indicator = split_array[j]
+        if split_indicator == 0:
+            vector = vector_array[vector_counter]
+            vector_counter += 1
+            pred_frame = prediction_array[vector[2]]
+            if not FMEEnable:
+                block_prediction[i][j] = decode_res_block_non_fraction(pred_frame, vector, i, j, block_size,
+                                                                       block_size)
+            else:
+                block_prediction[i][j] = decode_res_block_fraction(pred_frame, vector, i, j, block_size, block_size)
+        else:
+            vector_sub_array = vector_array[vector_counter: vector_counter + 4]
+            vector_counter += 4
+            single_block_prediction = np.zeros((block_size, block_size), dtype=np.uint8)
+            for k in range(4):
+                slice_x = (k // 2) * half_block_size
+                slice_y = (k % 2) * half_block_size
+                vector = vector_sub_array[k]
+                pred_frame = prediction_array[vector[2]]
+                if not FMEEnable:
+                    single_block_prediction[slice_x:slice_x + half_block_size,
+                    slice_y:slice_y + half_block_size] = decode_res_block_non_fraction(pred_frame, vector, i, j,
+                                                                                       block_size, half_block_size)
+                else:
+                    single_block_prediction[slice_x:slice_x + half_block_size,
+                    slice_y:slice_y + half_block_size] = decode_res_block_fraction(pred_frame, vector, i, j,
+                                                                                   block_size, half_block_size)
+            block_prediction[i][j] = single_block_prediction
+    ME_prediction = blocking.deblock_frame(block_prediction, w, h)
+    # here depends on the input type
+    # if both are uint8 it will round itself up
+    # if being uint8 and int8, which is pred and signed residual, it will clip then transform to uint8
+    return np.add(ME_prediction, residual).clip(0, 255).astype(np.uint8)
+
 def decode_res_block_non_fraction(pred_frame, vector, i, j, block_size, span_size):
     return pred_frame[i * block_size + vector[0]: i * block_size + vector[0] + span_size,
            j * block_size + vector[1]: j * block_size + vector[1] + span_size]
