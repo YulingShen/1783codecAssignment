@@ -53,13 +53,13 @@ def encode_complete(filepath, config_dict, table_dict):
         bits_tables['intra'] = table_dict['QCIF_intra']
         bits_tables['inter'] = table_dict['QCIF_inter']
     if RCFlag == 0 and ParallelMode == 0:
-        A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
+        prediction_to_file, bit_count = A2process.encode_complete(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
                                   FMEEnable, FastME, frame)
     elif ParallelMode in [1, 2]:
-        A3process_parallel.encode_parallel_1_2(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
+        prediction_to_file, bit_count = A3process_parallel.encode_parallel_1_2(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
                                   FMEEnable, FastME, ParallelMode, frame)
     elif ParallelMode == 3:
-        A3process_parallel.encode_parallel_3(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
+        prediction_to_file, bit_count = A3process_parallel.encode_parallel_3(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
                                   FMEEnable, FastME, ParallelMode, frame)
     elif RCFlag == 1:
         encode_RC_1(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME,
@@ -67,7 +67,7 @@ def encode_complete(filepath, config_dict, table_dict):
     elif RCFlag in [2, 3]:
         encode_RC_2(filepath, w, h, i, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable, FastME,
                     RCFlag, targetBR, fps, bits_tables, intraLine, frame)
-
+    return prediction_to_file, bit_count
 
 def encode_RC_1(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient, FMEEnable,
                 FastME, RCFlag, targetBR, fps, bits_tables, num_frames=None):
