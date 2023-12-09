@@ -199,7 +199,7 @@ def encode_parallel_1_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames
     encode_executor.shutdown()
     residual_file.close()
     diff_file.close()
-    reader.write_frame_array_to_file(prediction_array, filepath+"recon.yuv")
+    reader.write_frame_array_to_file(prediction_video, filepath+"recon.yuv")
 
 
 # parallel over frames
@@ -350,7 +350,7 @@ def encode_parallel_3(filepath, w, h, block_size, n, r, qp, period, nRefFrames, 
     encode_executor.shutdown()
     residual_file.close()
     diff_file.close()
-    reader.write_frame_array_to_file(prediction_array, filepath + "recon.yuv")
+    reader.write_frame_array_to_file(prediction_video, filepath + "recon.yuv")
 
 
 def decode_parallel_1(filepath):
