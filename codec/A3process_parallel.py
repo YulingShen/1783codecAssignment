@@ -1,4 +1,6 @@
+import os
 from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
 
@@ -36,14 +38,15 @@ def encode_parallel_mode_1(prediction_array, frame_block, w, h, n, r, lambda_val
             res_code_append += res_code
     split_array = []
     vec_array = np.empty((0, 3), dtype=np.uint16)
-    while len(diff_file_code) > 0:
+    diff_file_code_copy = diff_file_code
+    while len(diff_file_code_copy) > 0:
         if VBSEnable:
-            split, diff_file_code = entropy_decode.get_num(diff_file_code, 1)
+            split, diff_file_code_copy = entropy_decode.get_num(diff_file_code_copy, 1)
             split_array.append(split[0])
         else:
             split = [0]
             split_array.append(0)
-        vec, diff_file_code = entropy_decode.decode_vec_one_frame_alter(diff_file_code,
+        vec, diff_file_code_copy = entropy_decode.decode_vec_one_frame_alter(diff_file_code_copy,
                                                                         len(split) + 3 * np.sum(split), True)
         vec_array = np.append(vec_array, vec, axis=0)
     res = blocking.deblock_frame(block_itran)
@@ -141,7 +144,7 @@ def encode_inter_mode_2(prediction_array, frame_block, w, h, n, r, lambda_val, q
 # parallel within frame
 def encode_parallel_1_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
                         FMEEnable, FastME, ParallelMode, num_frames=None):
-    encode_executor = ThreadPoolExecutor(max_workers=2)
+    encode_executor = ProcessPoolExecutor(max_workers=os.cpu_count())
     y_only_bytes = reader.read_raw_byte_array(filepath)
     frame_block_array = blocking.block_raw(y_only_bytes, w, h, block_size, num_frames)
     # files to write
@@ -156,6 +159,7 @@ def encode_parallel_1_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames
         num_frames = len(frame_block_array)
     frame_block_array = frame_block_array[:num_frames]
     prediction_array = []
+    prediction_video = []
     if ParallelMode == 1:
         prediction_array.append(np.full((h, w), 128, dtype=np.uint8))
     lambda_val = evaluation.get_lambda(qp, lambda_coefficient)
@@ -191,16 +195,18 @@ def encode_parallel_1_2(filepath, w, h, block_size, n, r, qp, period, nRefFrames
             prediction_array.insert(0, prediction)
             if len(prediction_array) >= nRefFrames:
                 prediction_array = prediction_array[:nRefFrames]
+        prediction_video.append(prediction)
     encode_executor.shutdown()
     residual_file.close()
     diff_file.close()
+    reader.write_frame_array_to_file(prediction_array, filepath+"recon.yuv")
 
 
 # parallel over frames
 def encode_parallel_3(filepath, w, h, block_size, n, r, qp, period, nRefFrames, VBSEnable, lambda_coefficient,
                       FMEEnable, FastME, ParallelMode, num_frames=None):
     # FastME = False
-    encode_executor = ThreadPoolExecutor(max_workers=2)
+    encode_executor = ProcessPoolExecutor(max_workers=2)
     y_only_bytes = reader.read_raw_byte_array(filepath)
     frame_block_array = blocking.block_raw(y_only_bytes, w, h, block_size, num_frames)
     # files to write
@@ -215,6 +221,7 @@ def encode_parallel_3(filepath, w, h, block_size, n, r, qp, period, nRefFrames, 
         num_frames = len(frame_block_array)
     frame_block_array = frame_block_array[:num_frames]
     prediction_array = []
+    prediction_video = []
     n_rows_frame = (h - 1) // block_size + 1
     n_cols_frame = (w - 1) // block_size + 1
     lambda_val = evaluation.get_lambda(qp, lambda_coefficient)
@@ -314,29 +321,36 @@ def encode_parallel_3(filepath, w, h, block_size, n, r, qp, period, nRefFrames, 
             diff_file.write(frame_2_diff)
             residual_file.write(frame_2_res)
         if x_1 % period == 0:
-            prediction_array = [blocking.deblock_frame(prediction_intra)]
+            prediction = blocking.deblock_frame(prediction_intra)
+            prediction_array = [prediction]
         else:
             res = blocking.deblock_frame(block_itran_1)
-            prediction_array.insert(0, prediction_decode.decode_residual_ME_VBS(prediction_array, res, vec_array_1,
+            prediction = prediction_decode.decode_residual_ME_VBS(prediction_array, res, vec_array_1,
                                                                                 split_array_1, w, h,
                                                                                 block_size,
-                                                                                FMEEnable))
+                                                                                FMEEnable)
+            prediction_array.insert(0, prediction)
             if len(prediction_array) >= nRefFrames:
                 prediction_array = prediction_array[:nRefFrames]
+        prediction_video.append(prediction)
         if x_2 < num_frames:
             if x_2 % period == 0:
-                prediction_array = [blocking.deblock_frame(prediction_intra)]
+                prediction = blocking.deblock_frame(prediction_intra)
+                prediction_array = [prediction]
             else:
                 res = blocking.deblock_frame(block_itran_2)
-                prediction_array.insert(0, prediction_decode.decode_residual_ME_VBS(prediction_array, res, vec_array_2,
+                prediction = prediction_decode.decode_residual_ME_VBS(prediction_array, res, vec_array_2,
                                                                                     split_array_2, w, h,
                                                                                     block_size,
-                                                                                    FMEEnable))
+                                                                                    FMEEnable)
+                prediction_array.insert(0, prediction)
                 if len(prediction_array) >= nRefFrames:
                     prediction_array = prediction_array[:nRefFrames]
+            prediction_video.append(prediction)
     encode_executor.shutdown()
     residual_file.close()
     diff_file.close()
+    reader.write_frame_array_to_file(prediction_array, filepath + "recon.yuv")
 
 
 def decode_parallel_1(filepath):
