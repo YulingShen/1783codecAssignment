@@ -38,14 +38,15 @@ def encode_parallel_mode_1(prediction_array, frame_block, w, h, n, r, lambda_val
             res_code_append += res_code
     split_array = []
     vec_array = np.empty((0, 3), dtype=np.uint16)
-    while len(diff_file_code) > 0:
+    diff_file_code_copy = diff_file_code
+    while len(diff_file_code_copy) > 0:
         if VBSEnable:
-            split, diff_file_code = entropy_decode.get_num(diff_file_code, 1)
+            split, diff_file_code_copy = entropy_decode.get_num(diff_file_code_copy, 1)
             split_array.append(split[0])
         else:
             split = [0]
             split_array.append(0)
-        vec, diff_file_code = entropy_decode.decode_vec_one_frame_alter(diff_file_code,
+        vec, diff_file_code_copy = entropy_decode.decode_vec_one_frame_alter(diff_file_code_copy,
                                                                         len(split) + 3 * np.sum(split), True)
         vec_array = np.append(vec_array, vec, axis=0)
     res = blocking.deblock_frame(block_itran)
