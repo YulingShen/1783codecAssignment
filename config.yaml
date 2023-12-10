@@ -4,13 +4,13 @@ n = 3
 i = 16
 
 [QP]
-QP = 5
+QP = 4
 
 [I_Frame]
 period = 10
 
 [frame]
-frame = 21
+frame = 8
 
 [resolution]
 w = 352
@@ -37,4 +37,4 @@ FPS = 30
 intraLine = 1.5
 
 [ParallelMode]
-ParallelMode = 2
+ParallelMode = 3

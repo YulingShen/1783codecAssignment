@@ -250,12 +250,12 @@ def encode_parallel_3(filepath, w, h, block_size, n, r, qp, period, nRefFrames, 
             i_2 = i_1 - 2
             if i_1 < n_rows_frame:
                 if x_1 % period == 0:
-                    task = encode_executor.submit(prediction_encode_row.intra_residual_row, frame_block_array[x], n,
+                    task = encode_executor.submit(prediction_encode_row.intra_residual_row, frame_block_array[x_1], n,
                                                   lambda_val, q, q_split,
                                                   VBSEnable, prediction_intra, i_1)
                 else:
                     task = encode_executor.submit(prediction_encode_row.generate_residual_ME_row, prediction_array,
-                                                  frame_block_array[x],
+                                                  frame_block_array[x_1],
                                                   w,
                                                   h, n, r, lambda_val,
                                                   q, q_split,
@@ -265,12 +265,12 @@ def encode_parallel_3(filepath, w, h, block_size, n, r, qp, period, nRefFrames, 
                 task_handles[0][i_1] = task
             if i_2 >= 0 and x_2 < num_frames:
                 if x_2 % period == 0:
-                    task = encode_executor.submit(prediction_encode_row.intra_residual_row, frame_block_array[x], n,
+                    task = encode_executor.submit(prediction_encode_row.intra_residual_row, frame_block_array[x_2], n,
                                                   lambda_val, q, q_split,
                                                   VBSEnable, prediction_intra, i_2)
                 else:
                     task = encode_executor.submit(prediction_encode_row.generate_residual_ME_row, prediction_array_temp,
-                                                  frame_block_array[x],
+                                                  frame_block_array[x_2],
                                                   w,
                                                   h, n, r, lambda_val,
                                                   q, q_split,
